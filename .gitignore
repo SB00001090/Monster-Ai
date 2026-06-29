@@ -61,8 +61,12 @@ data/monster-ai.lock
 data/crimeguard/network_lock_state.json
 data/crimeguard/vpn_exit_nodes.json
 data/characters/*.json
-data/outputs/**/*
-!data/outputs/**/.gitkeep
+data/outputs/images/*
+!data/outputs/images/.gitkeep
+data/outputs/videos/*
+!data/outputs/videos/.gitkeep
+data/outputs/audio/*
+!data/outputs/audio/.gitkeep
 *.log
 
 # Duplicate nested project copy (local sync artifact)
