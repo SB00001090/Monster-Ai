@@ -50,6 +50,8 @@ data/chats/
 data/logs/
 data/models/
 data/guard/
+data/monsterlock/
+data/monsterlock_test/
 *.log
 
 # OS
