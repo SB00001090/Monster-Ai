@@ -36,7 +36,11 @@
     "video": "影片",
     "settings": "設定",
     "music": "音樂",
-    "analytics": "數據分析"
+    "analytics": "數據分析",
+    "miniStudio": "Mini 工作室",
+    "ecosystem": "一鍵安裝",
+    "deploy": "部署連線",
+    "integrations": "平台整合"
   },
   "analytics": {
     "analytics": "角色數據分析",

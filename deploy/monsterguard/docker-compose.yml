@@ -1,0 +1,30 @@
+services:
+  monsterguard:
+    build:
+      context: ../..
+      dockerfile: deploy/monsterguard/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MONSTER_DISCORD_TOKEN: ${MONSTER_DISCORD_TOKEN}
+      MONSTER_AI_URL: ${MONSTER_AI_URL:-http://host.docker.internal:7860}
+      MONSTER_AI_CONNECT_CONSENT: ${MONSTER_AI_CONNECT_CONSENT:-1}
+      MONSTERGUARD_WEBHOOK_URL: ${MONSTERGUARD_WEBHOOK_URL:-}
+      MONSTERGUARD_ALERT_CHANNEL_ID: ${MONSTERGUARD_ALERT_CHANNEL_ID:-0}
+    volumes:
+      - ../../data/guard:/app/data/guard
+      - ../../data/logs:/app/data/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  monster-ai:
+    profiles: ["full"]
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      - ../../data:/app/data

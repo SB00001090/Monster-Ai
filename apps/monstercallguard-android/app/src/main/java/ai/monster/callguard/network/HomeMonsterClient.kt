@@ -2,40 +2,22 @@ package ai.monster.callguard.network
 
 import android.content.Context
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
-class HomeMonsterClient(private val context: Context) {
-    private val prefs = context.getSharedPreferences("callguard", Context.MODE_PRIVATE)
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(3, TimeUnit.SECONDS)
-        .readTimeout(5, TimeUnit.SECONDS)
-        .build()
+/** Retrofit/OkHttp client — Cloudflare Tunnel HTTPS only. Developed by Suckbob | Monster AI */
+class HomeMonsterClient(context: Context) {
+    private val connection = ConnectionManager.get(context)
+    private val client get() = connection.httpClient
 
-    fun getBaseUrl(): String? {
-        val manual = prefs.getString("home_url", null)
-        if (!manual.isNullOrBlank()) return manual.trimEnd('/')
-        val tailscale = prefs.getString("tailscale_host", null)
-        if (!tailscale.isNullOrBlank()) return "http://$tailscale:7860"
-        val lan = prefs.getString("lan_host", null)
-        if (!lan.isNullOrBlank()) return "http://$lan:7860"
-        return null
-    }
+    fun getBaseUrl(): String? = connection.getBaseUrl()
 
-    fun testConnection(): String {
-        val base = getBaseUrl() ?: return "未設定家中 Monster AI 位址"
-        return try {
-            client.newCall(Request.Builder().url("$base/api/callguard/status").get().build())
-                .execute().use { r ->
-                    if (r.isSuccessful) "連線成功 · ${r.body?.string()?.take(80)}" else "HTTP ${r.code}"
-                }
-        } catch (e: Exception) {
-            "連線失敗: ${e.message}"
-        }
-    }
+    fun connectionState(): ConnectionState = connection.state.value
+
+    fun connectionMode(): ConnectionMode = connection.mode.value
+
+    fun testConnection(): String = connection.testConnectionMessage()
 
     fun analyzeRemote(number: String, displayName: String, token: String?): JSONObject? {
         val base = getBaseUrl() ?: return null
@@ -77,13 +59,54 @@ class HomeMonsterClient(private val context: Context) {
         val base = getBaseUrl() ?: return null
         return try {
             client.newCall(
-                Request.Builder().url("$base/api/callguard/token").post("{}".toRequestBody()).build(),
+                Request.Builder()
+                    .url("$base/api/callguard/token")
+                    .post("{}".toRequestBody("application/json".toMediaType()))
+                    .build(),
             ).execute().use { resp ->
                 if (!resp.isSuccessful) null
                 else JSONObject(resp.body?.string() ?: return null).optString("token")
             }
         } catch (_: Exception) {
             null
+        }
+    }
+
+    fun postJson(path: String, jsonBody: String, token: String? = null): Boolean {
+        val base = getBaseUrl() ?: return false
+        val req = Request.Builder()
+            .url("$base$path")
+            .post(jsonBody.toRequestBody("application/json".toMediaType()))
+            .apply { if (token != null) header("Authorization", "Bearer $token") }
+            .build()
+        return try {
+            client.newCall(req).execute().use { it.isSuccessful }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun ping(): Boolean = connection.probeHealth()
+
+    fun fetchThreatDb(token: String?): String? {
+        val base = getBaseUrl() ?: return connection.readCachedThreatDb()
+        return try {
+            val req = Request.Builder()
+                .url("$base/api/callguard/threat-db")
+                .get()
+                .apply { if (token != null) header("Authorization", "Bearer $token") }
+                .build()
+            client.newCall(req).execute().use { r ->
+                if (r.isSuccessful) {
+                    val body = r.body?.string() ?: return connection.readCachedThreatDb()
+                    connection.cacheThreatDb(body)
+                    body
+                } else {
+                    connection.readCachedThreatDb()
+                }
+            }
+        } catch (_: Exception) {
+            connection.readCachedThreatDb()
         }
     }
 }

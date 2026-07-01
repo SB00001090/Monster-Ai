@@ -1,0 +1,42 @@
+{
+  "name": "MonsterAI_ImageGen_QualityGate",
+  "description": "Dify workflow template — calls Monster AI API with 70% quality gate. Import into Dify Studio.",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "variables": ["prompt", "template_id", "locale", "min_quality"]
+    },
+    {
+      "id": "generate",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/mini/generate",
+      "body": {
+        "prompt": "{{prompt}}",
+        "template_id": "{{template_id}}",
+        "locale": "{{locale}}"
+      }
+    },
+    {
+      "id": "quality_check",
+      "type": "if-else",
+      "condition": "{{generate.quality.score}} >= {{min_quality}}"
+    },
+    {
+      "id": "learn_good",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/learning/image/feedback",
+      "body": { "thumbs": "up", "prompt": "{{prompt}}" }
+    },
+    {
+      "id": "retry",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/mini/optimize",
+      "body": { "prompt": "{{prompt}}", "locale": "{{locale}}" }
+    }
+  ],
+  "notes": "Set MONSTER_API_URL to your Cloudflare Tunnel. min_quality default 0.70."
+}

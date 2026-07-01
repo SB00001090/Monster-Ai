@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monster AI Ecosystem Installer</title>
+  <link rel="stylesheet" href="ecosystem.css" />
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div id="consentModal" class="modal">
+    <div class="modal-box">
+      <h3>一鍵網絡安裝 · 隱私與免責</h3>
+      <pre id="privacyText" class="disclaimer-pre"></pre>
+      <label class="check">
+        <input type="checkbox" id="agreeR18" checked /> 允許 R18+ 模組下載與安裝
+      </label>
+      <label class="check">
+        <input type="checkbox" id="agreeDownloads" checked /> 允許從網絡下載模型與擴展
+      </label>
+      <label class="check">
+        <input type="checkbox" id="agreeTerms" /> 我已閱讀並同意上述條款
+      </label>
+      <button id="btnConsent" class="primary" disabled>同意並繼續</button>
+    </div>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <span class="neon">MONSTER AI</span>
+      <span class="ver">Ecosystem Installer</span>
+    </div>
+    <div class="credit">Developed by Suckbob | Monster AI</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel hero">
+      <h1>一鍵安裝完整生態</h1>
+      <p class="hint">
+        安全連接網絡，自動安裝角色扮演、圖像、影片、音訊、R18+、Likeness 與持續學習模組。
+        與 Mini Monster AI 雙向共享模型與數據。
+      </p>
+      <div class="bundle-grid" id="bundleGrid"></div>
+      <div class="actions">
+        <button id="btnInstallFull" class="primary xl">一鍵安裝完整生態</button>
+        <button id="btnStop" class="bad ghost">停止安裝</button>
+        <a href="/mini/index.html" class="link-btn">→ Mini Monster AI</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>安裝進度</h2>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="stats">
+        <span id="progressPct">0%</span>
+        <span id="currentStep">—</span>
+      </div>
+      <pre id="installLog" class="log"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>生態狀態</h2>
+      <pre id="statusBox" class="status">載入中…</pre>
+      <button id="btnRefresh" class="ghost">重新整理</button>
+    </section>
+
+    <section class="panel wide">
+      <h2>模組說明</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>角色扮演</h3>
+          <p>Ollama + 無審查 LLM + 中文 Persona + SillyTavern 類前端整合</p>
+        </div>
+        <div class="feature">
+          <h3>圖像 / 影片</h3>
+          <p>ComfyUI + SDXL / Flux + AnimateDiff + IP-Adapter FaceID + ControlNet</p>
+        </div>
+        <div class="feature">
+          <h3>音訊</h3>
+          <p>Piper + XTTS 語音克隆 + 多語言 TTS</p>
+        </div>
+        <div class="feature">
+          <h3>R18+ / Likeness</h3>
+          <p>極度相似偶像同人 · 圖像 + 語音 · 目標 98%+ 成功率</p>
+        </div>
+        <div class="feature">
+          <h3>持續學習</h3>
+          <p>匿名反饋 → 自動 LoRA / 提示詞優化 · 可選網絡學習</p>
+        </div>
+        <div class="feature">
+          <h3>自修復</h3>
+          <p>MonsterLock + CrimeGuard + 一鍵恢復 seal</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="ecosystem.js"></script>
+</body>
+</html>

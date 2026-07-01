@@ -23,6 +23,26 @@ history:
   retention_days: 30
   auto_purge_on_startup: true
 
+web:
+  cors_enabled: true
+  cors_origins:
+    - "http://127.0.0.1:7860"
+    - "http://localhost:7860"
+    - "http://127.0.0.1:5173"
+    - "http://localhost:5173"
+    # Add your Cloudflare Pages URL after deploy:
+    # - "https://monster-ai.pages.dev"
+  allow_credentials: true
+
+ecosystem:
+  enabled: true
+  data_dir: "./data/ecosystem"
+  network_install_enabled: true
+  require_consent: true
+  default_bundle: full
+  allow_r18_bundle: true
+  allow_model_downloads: true
+
 learning:
   enabled: true
   data_dir: "./data/learning"
@@ -31,7 +51,27 @@ learning:
   knowledge_extraction: true
   reflect_enabled: true
   reflect_max_retries: 2
-  min_quality_score: 0.55
+  min_quality_score: 0.70
+  inject_context_always: true
+  regenerate_on_negative_feedback: true
+  auto_tune_quality: true
+  evolution_log_enabled: true
+  web_learning_enabled: true
+  web_auto_search: true
+  web_search_langs:
+    - zh
+    - en
+  web_max_results: 3
+  web_fetch_timeout_seconds: 15
+  web_cache_hours: 24
+  image_learning_enabled: true
+  image_auto_apply_learned_tags: true
+  roleplay_web_enabled: true
+  roleplay_web_auto_search: true
+  curriculum_enabled: true
+  curriculum_duration_hours: 36
+  curriculum_extended_hours: 72
+  curriculum_auto_start: false
 
 repair:
   interval_seconds: 30
@@ -60,6 +100,7 @@ persona:
   enabled: true
   default_mode: grok
   allow_user_override: true
+  response_locale: zh-TW
   grok:
     humor: high
     directness: high
@@ -95,9 +136,9 @@ modules:
     output_dir: "./data/outputs/images"
     quality:
       enabled: true
-      mode: rules
+      mode: light
       device: cpu
-      max_retries: 3
+      max_retries: 5
       min_clip_score: 0.18
       min_aesthetic: 4.5
       save_bad: true
@@ -107,6 +148,7 @@ modules:
       allow_high_saturation: false
       allow_dark_style: false
       add_quality_tags: true
+      auto_lora_on_retry: true
       data_dir: "./data/quality"
   video:
     enabled: true
@@ -124,8 +166,36 @@ modules:
   tts:
     enabled: true
     engine: "piper"
-    piper_voice: "en_US-lessac-medium"
+    piper_voice: "zh_CN-huayan-medium"
     xtts_enabled: false
+  mini:
+    enabled: true
+    data_dir: ./data/mini
+    output_dir: ./data/outputs/mini
+    default_template: stable
+    default_locale: zh-TW
+    checkpoint: auto
+    lite_mode: true
+    uncensored: true
+    auto_optimize_prompt: true
+    max_quality_retries: 6
+    reject_bad_output: true
+    min_quality_score: 0.70
+    min_high_quality_score: 0.85
+    auto_emergency_retry: true
+    share_with_monster_ai: true
+    network_learning_enabled: false
+    network_allow_downloads: false
+    network_allow_metrics_upload: false
+    gguf_model_hint: qwen2.5:7b
+    vram_profile: mini
+    likeness_enabled: true
+    likeness_target_similarity: 0.98
+    likeness_ipadapter_weight: 0.85
+    require_user_reference: true
+    voice_clone_enabled: true
+    multimodal_sync_enabled: true
+    comfy_input_dir: ./data/comfyui/input
   prompt:
     enabled: true
   discord:
@@ -200,8 +270,16 @@ protection:
   callguard:
     enabled: true
     auto_reject_threshold: 85
+    connection_mode: cloudflare_tunnel
+    tunnel_url_env: MONSTER_TUNNEL_URL
+    tunnel_url_file: ./data/callguard/tunnel_url.txt
+    consensus_min_votes: 3
+    consensus_adopt_threshold: 70
+    public_comment_board: false
     data_dir: "./data/callguard"
     hk_hotline: "18222"
+    github_releases_page: "https://github.com/Suckbob/monster-ai/releases/latest"
+    apk_download_url: ""
   firewall:
     enabled: true
     mode: learning
@@ -219,3 +297,46 @@ protection:
     discord_webhook: ""
     email:
       enabled: false
+
+dify:
+  enabled: false
+  api_url: ""
+  api_key_env: DIFY_API_KEY
+  workflow_image_id: ""
+  workflow_multimodal_id: ""
+  min_quality_score: 0.70
+  fallback_to_monster: true
+
+integrations:
+  make_webhook_secret_env: MAKE_WEBHOOK_SECRET
+  sentry_dsn_env: SENTRY_DSN
+  sentry_enabled: false
+  jam_enabled: false
+  ahrefs_enabled: false
+
+commercial:
+  enabled: true
+  data_dir: ./data/commercial
+  trial_days: 7
+  unlock_dev_token: ""
+  min_high_quality_score: 0.85
+
+guardian:
+  enabled: true
+  data_dir: "./data/guardian"
+  cloud_sync_enabled: true
+  e2e_encryption_required: true
+  ephemeral_chat_default: true
+  oc_fingerprint_enabled: true
+  oc_watermark_enabled: true
+  grok_supervision_enabled: true
+  min_quality_score: 0.70
+  oauth_providers:
+    - google
+    - github
+  apk_usb_install_enabled: true
+  training_encryption_enabled: true
+  bind_hardware_key: true
+  require_user_passphrase: false
+  encrypt_quality_assets: true
+  delete_plaintext_after_encrypt: true

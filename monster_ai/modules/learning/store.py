@@ -15,7 +15,10 @@ class LearningStore:
         self.knowledge_dir = self.root / "knowledge"
         self.feedback_log = self.root / "feedback.jsonl"
         self.failures_log = self.root / "failures.jsonl"
-        for d in (self.users_dir, self.characters_dir, self.knowledge_dir):
+        self.web_dir = self.root / "web"
+        self.web_facts = self.web_dir / "facts.json"
+        self.web_learned_log = self.web_dir / "learned.jsonl"
+        for d in (self.users_dir, self.characters_dir, self.knowledge_dir, self.web_dir):
             d.mkdir(parents=True, exist_ok=True)
 
     def append_jsonl(self, path: Path, record: dict[str, Any]) -> None:

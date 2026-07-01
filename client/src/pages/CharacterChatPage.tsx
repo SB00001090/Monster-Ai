@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import { useTranslation } from "react-i18next";
 import { useTTS } from "@/hooks/useTTS";
+import SignInPrompt from "@/components/SignInPrompt";
 
 
 interface Message {
@@ -275,11 +276,7 @@ export default function CharacterChatPage() {
   );
 
   if (!canChat) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-muted-foreground">{t("chat.signInRequired")}</p>
-      </div>
-    );
+    return <SignInPrompt />;
   }
 
   return (

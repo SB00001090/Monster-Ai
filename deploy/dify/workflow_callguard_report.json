@@ -1,0 +1,47 @@
+{
+  "name": "MonsterAI_CallGuard_AnonymousReport",
+  "description": "匿名回報處理 — 無公開留言板，≥3 人驗證後更新 hash_blocklist",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "variables": ["number_hash", "category", "score", "signals", "reporter_id"]
+    },
+    {
+      "id": "submit",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/report",
+      "body": {
+        "number": "{{number_hash}}",
+        "category": "{{category}}",
+        "score": "{{score}}",
+        "signals": "{{signals}}",
+        "reporter_id": "{{reporter_id}}"
+      }
+    },
+    {
+      "id": "quality_filter",
+      "type": "if-else",
+      "condition": "{{score}} >= 70"
+    },
+    {
+      "id": "consensus_check",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/consensus"
+    },
+    {
+      "id": "adopted",
+      "type": "if-else",
+      "condition": "{{submit.consensus.adopted}} == true"
+    },
+    {
+      "id": "sync_threat_db",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/threat-db"
+    }
+  ],
+  "notes": "MONSTER_TUNNEL_URL = Cloudflare Tunnel HTTPS。唔用 Tailscale/IP。唔儲存留言文字，只處理 hash + 分類 + trust_score。詳見 workflow_callguard_trust.json"
+}

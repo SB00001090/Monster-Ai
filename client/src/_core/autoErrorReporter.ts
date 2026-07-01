@@ -1,6 +1,7 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../../../server/routers";
+import { reportGuardianError } from "../lib/guardianApi";
 
 type ClientAction =
   | { type: "guest" }
@@ -90,6 +91,14 @@ export async function reportError(
         result.clientAction.type === "guest" ? 1500 : 800;
       window.setTimeout(() => applyClientAction(result.clientAction), delay);
     }
+
+    void reportGuardianError({
+      errorType: err.name || "Error",
+      message: err.message,
+      stack: err.stack,
+      context,
+      source,
+    }).catch(() => undefined);
 
     window.dispatchEvent(
       new CustomEvent("monster:auto-fix", {

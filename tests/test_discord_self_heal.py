@@ -54,7 +54,7 @@ async def test_ensure_guard_running_restarts_dead_task(monkeypatch: pytest.Monke
         svc._task = asyncio.create_task(asyncio.sleep(3600))
 
     monkeypatch.setattr(svc, "_start_bot_task", fake_start)
-    await svc._restart_guard("test-token")
+    await svc.restart_guard(force_token="test-token")
 
     assert started == ["test-token"]
     assert svc._heal_stats.restarts == 1
@@ -97,3 +97,13 @@ async def test_guard_status_includes_self_heal() -> None:
     assert "self_heal" in status
     assert status["self_heal"]["enabled"] is True
     assert status["self_heal"]["restarts"] == 0
+
+
+@pytest.mark.asyncio
+async def test_guard_status_includes_v2_resilience() -> None:
+    svc = DiscordService(_settings())
+    status = svc.guard_status()
+    assert status.get("version") == "2.1.0"
+    assert "resilience" in status
+    assert "monster_ai" in status
+    assert "callguard_bridge" in status

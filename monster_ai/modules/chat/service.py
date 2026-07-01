@@ -38,18 +38,26 @@ class ChatService:
         message: str,
         system: str | None = None,
         persona_mode: str | None = None,
+        *,
+        user_id: str = "default",
+        session_id: str = "chat",
     ) -> dict[str, Any]:
         persona = self.settings.persona
         mode = persona_mode or (persona.default_mode if persona.enabled else "off")
         if persona_mode and not persona.allow_user_override:
             mode = persona.default_mode if persona.enabled else "off"
-        resolved = resolve_persona(mode, system, chat_mode="chat")
-        if self.learning and self.learning.settings.enabled and self.learning.settings.reflect_enabled:
-            result = await self.learning.generate_with_reflect(
+        resolved = resolve_persona(
+            mode,
+            system,
+            chat_mode="chat",
+            locale=self.settings.persona.response_locale,
+        )
+        if self.learning and self.learning.settings.enabled:
+            result = await self.learning.generate(
                 user_message=message,
                 system=resolved,
-                user_id="default",
-                session_id="chat",
+                user_id=user_id,
+                session_id=session_id,
             )
             return {
                 "role": "assistant",
@@ -57,7 +65,10 @@ class ChatService:
                 "backend": result["backend"],
                 "quality": result.get("quality"),
             }
-        content = await self.repair.generate(message, system=resolved)
+        enriched = resolved
+        if self.learning:
+            enriched = self.learning.enrich_system(resolved, user_id=user_id)
+        content = await self.repair.generate(message, system=enriched)
         return {
             "role": "assistant",
             "content": content,

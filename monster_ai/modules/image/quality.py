@@ -36,6 +36,7 @@ HARD_FAIL = frozenset(
         QualityIssue.LOW_VARIANCE,
         QualityIssue.LOW_ENTROPY,
         QualityIssue.NOISE_WALL,
+        QualityIssue.LOW_EDGE,
     }
 )
 
@@ -51,7 +52,9 @@ class QualityReport:
     rule_score: float = 1.0
 
     def to_dict(self) -> dict:
-        return {
+        from monster_ai.modules.image.quality_tiers import enrich_quality_dict
+
+        base = {
             "passed": self.passed,
             "score": round(self.score, 4),
             "issues": [i.value for i in self.issues],
@@ -60,6 +63,7 @@ class QualityReport:
             "aesthetic_score": self.aesthetic_score,
             "rule_score": round(self.rule_score, 4),
         }
+        return enrich_quality_dict(base)
 
 
 def _load_rgb_array(path: Path, max_side: int = 512) -> np.ndarray:

@@ -25,6 +25,29 @@ class PreferenceLearner:
         }
         return self.store.read_json(self.store.user_path(user_id), default)
 
+    def _infer_style_updates(self, comment: str) -> dict[str, str]:
+        text = (comment or "").lower()
+        updates: dict[str, str] = {}
+        short_markers = (
+            "簡短", "太短", "短一點", "简短", "太短", "shorter", "too long", "太長", "太长",
+        )
+        long_markers = (
+            "詳細", "详细", "長一點", "长一点", "more detail", "longer", "展開", "展开",
+        )
+        formal_markers = ("正式", "專業", "专业", "formal", "严肃", "嚴肅")
+        casual_markers = ("輕鬆", "轻松", "幽默", "casual", "playful", "俏皮")
+        if any(m in text for m in short_markers):
+            updates["responseLength"] = "short"
+        elif any(m in text for m in long_markers):
+            updates["responseLength"] = "long"
+        if any(m in text for m in formal_markers):
+            updates["tonePreference"] = "formal"
+            updates["interactionStyle"] = "direct"
+        elif any(m in text for m in casual_markers):
+            updates["tonePreference"] = "casual"
+            updates["interactionStyle"] = "playful"
+        return updates
+
     def update_from_feedback(
         self,
         user_id: str,
@@ -33,6 +56,7 @@ class PreferenceLearner:
         thumbs: str | None = None,
         topics: list[str] | None = None,
         session_id: str = "",
+        comment: str = "",
     ) -> dict[str, Any]:
         model = self.get(user_id)
         hist = {
@@ -59,6 +83,10 @@ class PreferenceLearner:
             key = topic.lower().strip()
             if key:
                 topics_map[key] = round(min(1.0, float(topics_map.get(key, 0.5)) + 0.08), 3)
+
+        style_updates = self._infer_style_updates(comment)
+        for key, value in style_updates.items():
+            prefs[key] = value
 
         self.store.write_json(self.store.user_path(user_id), model)
         return model
@@ -88,6 +116,14 @@ class PreferenceLearner:
         if sat is not None:
             parts.append(f"User satisfaction trend: {sat:.2f}")
         tone = prefs.get("tonePreference")
+        length = prefs.get("responseLength")
+        style = prefs.get("interactionStyle")
         if tone:
             parts.append(f"Preferred tone: {tone}")
+        if length:
+            parts.append(f"Preferred response length: {length}")
+        if style:
+            parts.append(f"Preferred interaction style: {style}")
+        if sat is not None and sat < 0.55:
+            parts.append("User recently dissatisfied — prioritize clarity and usefulness.")
         return "\n".join(parts)

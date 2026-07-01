@@ -34,7 +34,24 @@ class LearningSettings(BaseModel):
     knowledge_extraction: bool = True
     reflect_enabled: bool = True
     reflect_max_retries: int = 2
-    min_quality_score: float = 0.55
+    min_quality_score: float = 0.70
+    inject_context_always: bool = True
+    regenerate_on_negative_feedback: bool = True
+    auto_tune_quality: bool = True
+    evolution_log_enabled: bool = True
+    web_learning_enabled: bool = True
+    web_auto_search: bool = True
+    web_search_langs: list[str] = Field(default_factory=lambda: ["zh", "en"])
+    web_max_results: int = 3
+    web_fetch_timeout_seconds: int = 15
+    web_cache_hours: int = 24
+    image_learning_enabled: bool = True
+    image_auto_apply_learned_tags: bool = True
+    roleplay_web_enabled: bool = True
+    roleplay_web_auto_search: bool = True
+    curriculum_enabled: bool = True
+    curriculum_duration_hours: float = 36.0
+    curriculum_auto_start: bool = False
 
 
 class RepairSettings(BaseModel):
@@ -86,6 +103,9 @@ class ImageQualitySettings(BaseModel):
     anti_collapse_lora: str = "anti_collapse.safetensors"
     auto_lora_on_retry: bool = True
     lora_strength_on_retry: float = 0.65
+    reject_bad_output: bool = True
+    min_alive_score: float = 0.70
+    min_high_quality_score: float = 0.85
 
 
 class ImageModuleSettings(ModuleToggle):
@@ -99,6 +119,65 @@ class ImageModuleSettings(ModuleToggle):
     cfg: float = 7.0
     lora_strength: float = 0.8
     quality: ImageQualitySettings = Field(default_factory=ImageQualitySettings)
+
+
+class WebSettings(BaseModel):
+    """Public web UI (Cloudflare Pages + Tunnel)."""
+
+    cors_enabled: bool = True
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://127.0.0.1:7860",
+            "http://localhost:7860",
+            "http://127.0.0.1:5173",
+            "http://localhost:5173",
+        ]
+    )
+    allow_credentials: bool = True
+
+
+class DifySettings(BaseModel):
+    """Dify workflow orchestration (parallel to Monster native)."""
+
+    enabled: bool = False
+    api_url: str = ""
+    api_key_env: str = "DIFY_API_KEY"
+    workflow_image_id: str = ""
+    workflow_multimodal_id: str = ""
+    min_quality_score: float = 0.70
+    fallback_to_monster: bool = True
+
+
+class IntegrationsSettings(BaseModel):
+    """Third-party platform hooks."""
+
+    make_webhook_secret_env: str = "MAKE_WEBHOOK_SECRET"
+    sentry_dsn_env: str = "SENTRY_DSN"
+    sentry_enabled: bool = False
+    jam_enabled: bool = False
+    ahrefs_enabled: bool = False
+
+
+class CommercialSettings(BaseModel):
+    """7-day trial + one-time lifetime unlock."""
+
+    enabled: bool = True
+    data_dir: str = "./data/commercial"
+    trial_days: int = 7
+    unlock_dev_token: str = ""
+    min_high_quality_score: float = 0.85
+
+
+class EcosystemSettings(BaseModel):
+    """One-click network ecosystem installer."""
+
+    enabled: bool = True
+    data_dir: str = "./data/ecosystem"
+    network_install_enabled: bool = True
+    require_consent: bool = True
+    default_bundle: str = "full"
+    allow_r18_bundle: bool = True
+    allow_model_downloads: bool = True
 
 
 class LauncherSettings(BaseModel):
@@ -157,6 +236,22 @@ class GuardSettings(BaseModel):
     self_heal_enabled: bool = True
     self_heal_interval_seconds: int = 60
     self_heal_max_backoff_seconds: int = 300
+    max_reconnect_attempts: int = 10
+    heartbeat_interval_seconds: int = 30
+    heartbeat_max_latency_seconds: float = 5.0
+    heartbeat_fail_threshold: int = 3
+    notify_webhook_url: str = ""
+    notify_channel_id: int = 0
+    monster_ai_consent_required: bool = True
+    mtls_cert_path: str = ""
+    mtls_key_path: str = ""
+    callguard_bridge_enabled: bool = True
+    callguard_poll_interval_seconds: int = 15
+    callguard_alert_score_threshold: int = 70
+    trial_reminder_enabled: bool = False
+    trial_days: int = 7
+    welcome_intro_enabled: bool = True
+    welcome_intro_style: str = "cyberpunk"  # guardian | cyberpunk | privacy
 
 
 class DiscordModuleSettings(ModuleToggle):
@@ -167,7 +262,7 @@ class DiscordModuleSettings(ModuleToggle):
 
 class TTSModuleSettings(ModuleToggle):
     engine: str = "piper"
-    piper_voice: str = "en_US-lessac-medium"
+    piper_voice: str = "zh_CN-huayan-medium"
     xtts_enabled: bool = False
     output_dir: str = "./data/outputs/audio"
 
@@ -189,6 +284,41 @@ class PromptModuleSettings(ModuleToggle):
     style: str = "stable_diffusion"
 
 
+class MiniModuleSettings(ModuleToggle):
+    """Mini Monster AI — lightweight uncensored R18+ image stack."""
+
+    enabled: bool = True
+    data_dir: str = "./data/mini"
+    output_dir: str = "./data/outputs/mini"
+    default_template: str = "stable"  # stable | fast | hq | portrait | fullbody
+    default_locale: str = "zh-TW"
+    checkpoint: str = "auto"
+    default_lora: str = ""
+    lora_strength: float = 0.75
+    lite_mode: bool = True
+    uncensored: bool = True
+    auto_optimize_prompt: bool = True
+    max_quality_retries: int = 6
+    reject_bad_output: bool = True
+    min_quality_score: float = 0.70
+    min_high_quality_score: float = 0.85
+    auto_emergency_retry: bool = True
+    share_with_monster_ai: bool = True
+    network_learning_enabled: bool = False
+    network_allow_downloads: bool = False
+    network_allow_metrics_upload: bool = False
+    network_metrics_endpoint: str = ""
+    gguf_model_hint: str = "qwen2.5:7b"
+    vram_profile: str = "mini"  # mini | standard
+    likeness_enabled: bool = True
+    likeness_target_similarity: float = 0.98
+    likeness_ipadapter_weight: float = 0.85
+    require_user_reference: bool = True
+    voice_clone_enabled: bool = True
+    multimodal_sync_enabled: bool = True
+    comfy_input_dir: str = "./data/comfyui/input"
+
+
 class ModulesSettings(BaseModel):
     chat: ChatModuleSettings = Field(default_factory=ChatModuleSettings)
     roleplay: RoleplayModuleSettings = Field(default_factory=RoleplayModuleSettings)
@@ -198,6 +328,7 @@ class ModulesSettings(BaseModel):
     tts: TTSModuleSettings = Field(default_factory=TTSModuleSettings)
     training: ModuleToggle = Field(default_factory=ModuleToggle)
     prompt: PromptModuleSettings = Field(default_factory=PromptModuleSettings)
+    mini: MiniModuleSettings = Field(default_factory=MiniModuleSettings)
 
 
 class EmailNotificationSettings(BaseModel):
@@ -237,6 +368,7 @@ class PersonaSettings(BaseModel):
     enabled: bool = True
     default_mode: str = "grok"  # grok | custom | off
     allow_user_override: bool = True
+    response_locale: str = "zh-TW"  # zh-TW | zh-HK | zh-CN | en
     grok: GrokPersonaSettings = Field(default_factory=GrokPersonaSettings)
 
 
@@ -287,13 +419,17 @@ class CallGuardSettings(BaseModel):
     auto_reject_threshold: int = 85
     deep_analyze_threshold: int = 60
     threat_db_sync_hours: int = 6
-    allow_tailscale: bool = True
-    allow_lan_discovery: bool = True
-    tailscale_host: str = ""
+    connection_mode: str = "cloudflare_tunnel"
+    tunnel_url_env: str = "MONSTER_TUNNEL_URL"
+    tunnel_url_file: str = "./data/callguard/tunnel_url.txt"
     data_dir: str = "./data/callguard"
     report_enabled: bool = True
+    consensus_min_votes: int = 3
+    consensus_adopt_threshold: int = 70
+    public_comment_board: bool = False
     hk_hotline: str = "18222"
     apk_download_url: str = ""
+    github_releases_page: str = "https://github.com/Suckbob/monster-ai/releases/latest"
 
 
 class CrimeGuardSettings(BaseModel):
@@ -336,6 +472,29 @@ class ProtectionSettings(BaseModel):
     callguard: CallGuardSettings = Field(default_factory=CallGuardSettings)
 
 
+class GuardianSettings(BaseModel):
+    """Monster Guardian AI — cloud sync, OC protection, error learning."""
+
+    enabled: bool = True
+    data_dir: str = "./data/guardian"
+    cloud_sync_enabled: bool = True
+    e2e_encryption_required: bool = True
+    ephemeral_chat_default: bool = True
+    anti_screenshot_hint: bool = True
+    oc_fingerprint_enabled: bool = True
+    oc_watermark_enabled: bool = True
+    grok_supervision_enabled: bool = True
+    min_quality_score: float = 0.70
+    oauth_providers: list[str] = Field(default_factory=lambda: ["google", "github"])
+    tunnel_url_env: str = "MONSTER_TUNNEL_URL"
+    apk_usb_install_enabled: bool = True
+    training_encryption_enabled: bool = True
+    bind_hardware_key: bool = True
+    require_user_passphrase: bool = False
+    encrypt_quality_assets: bool = True
+    delete_plaintext_after_encrypt: bool = True
+
+
 class Settings(BaseModel):
     host: str = "127.0.0.1"
     port: int = 7860
@@ -348,6 +507,12 @@ class Settings(BaseModel):
     persona: PersonaSettings = Field(default_factory=PersonaSettings)
     modules: ModulesSettings = Field(default_factory=ModulesSettings)
     protection: ProtectionSettings = Field(default_factory=ProtectionSettings)
+    ecosystem: EcosystemSettings = Field(default_factory=EcosystemSettings)
+    web: WebSettings = Field(default_factory=WebSettings)
+    dify: DifySettings = Field(default_factory=DifySettings)
+    integrations: IntegrationsSettings = Field(default_factory=IntegrationsSettings)
+    commercial: CommercialSettings = Field(default_factory=CommercialSettings)
+    guardian: GuardianSettings = Field(default_factory=GuardianSettings)
     guard: GuardSettings | None = None
 
     @property

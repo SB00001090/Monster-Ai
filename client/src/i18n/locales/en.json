@@ -36,7 +36,11 @@
     "video": "Video",
     "settings": "Settings",
     "music": "Music",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "miniStudio": "Mini Studio",
+    "ecosystem": "Ecosystem Install",
+    "deploy": "Deploy & Connect",
+    "integrations": "Integrations"
   },
   "analytics": {
     "analytics": "Character Analytics",

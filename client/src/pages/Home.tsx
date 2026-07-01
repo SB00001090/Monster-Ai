@@ -16,6 +16,8 @@ import {
   Cpu,
   ArrowRight,
   Activity,
+  Sparkles,
+  Download,
 } from "lucide-react";
 import LatestCharactersShowcase from "@/components/LatestCharactersShowcase";
 
@@ -24,6 +26,8 @@ const quickLinks = [
   { icon: Users, labelKey: "navigation.createCharacter", path: "/characters", color: "text-blue-400" },
   { icon: ImageIcon, labelKey: "home.textToImage", path: "/text-to-image", color: "text-pink-400" },
   { icon: Film, labelKey: "navigation.video", path: "/video", color: "text-orange-400" },
+  { icon: Sparkles, labelKey: "navigation.miniStudio", path: "/mini-studio", color: "text-fuchsia-400" },
+  { icon: Download, labelKey: "navigation.ecosystem", path: "/ecosystem", color: "text-cyan-400" },
   { icon: BookOpen, labelKey: "navigation.templates", path: "/templates", color: "text-emerald-400" },
   { icon: MessageSquare, labelKey: "navigation.forum", path: "/forum", color: "text-cyan-400" },
 ];

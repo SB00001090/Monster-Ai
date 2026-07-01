@@ -26,6 +26,13 @@ def test_resolve_user_override_beats_grok():
     assert prompt == "Custom only."
 
 
+def test_zh_tw_locale_prompt():
+    prompt = resolve_persona("grok", None, chat_mode="chat", locale="zh-TW")
+    assert prompt is not None
+    assert "Monster AI" in prompt or "你是 Monster AI" in prompt
+    assert "繁體中文" in prompt
+
+
 def test_roleplay_appendix(tmp_path, monkeypatch):
     persona_file = tmp_path / "grok_default.yaml"
     persona_file.write_text(

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import logging
 import os
 import time
@@ -11,6 +12,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from monster_ai.config import Settings
+from monster_ai.modules.discord.constants import DEVELOPER_CREDIT, LOG_PATH, VERSION
+from monster_ai.modules.discord.guard.integration.callguard_bridge import CallGuardBridge
+from monster_ai.modules.discord.guard.integration.monster_ai_client import MonsterAIClient
+from monster_ai.modules.discord.guard.resilience.heartbeat import HeartbeatMonitor
+from monster_ai.modules.discord.guard.resilience.notifier import DisconnectNotifier
+from monster_ai.modules.discord.guard.resilience.reconnect import ReconnectManager
 
 if TYPE_CHECKING:
     from monster_ai.core.self_repair import SelfRepairEngine
@@ -47,6 +54,30 @@ class DiscordService:
         self._chat: ChatService | None = None
         self._roleplay: RoleplayService | None = None
         self._token: str = ""
+
+        guard = settings.modules.discord.guard
+        self._notifier = DisconnectNotifier(guard, get_bot=lambda: self._bot)
+        self._reconnect = ReconnectManager(guard, notifier=self._notifier)
+        self._monster_client = MonsterAIClient(settings)
+        self._heartbeat = HeartbeatMonitor(
+            guard,
+            self._reconnect,
+            get_bot=lambda: self._bot,
+            monster_client=self._monster_client,
+            on_failure=self._on_heartbeat_failure,
+        )
+        self._callguard_bridge = CallGuardBridge(
+            guard,
+            self._monster_client,
+            get_bot=lambda: self._bot,
+            get_alert_channel_id=self._resolve_alert_channel_id,
+        )
+
+    def _resolve_alert_channel_id(self) -> int:
+        env = os.getenv("MONSTERGUARD_ALERT_CHANNEL_ID", "").strip()
+        if env.isdigit():
+            return int(env)
+        return int(self.settings.modules.discord.guard.notify_channel_id or 0)
 
     def _token_file_path(self) -> Path | None:
         primary = _PROJECT_ROOT / "discord.token.local"
@@ -135,12 +166,44 @@ class DiscordService:
         }
 
     def guard_status(self) -> dict[str, Any]:
-        if self._bot and self._running:
-            base = {"running": True, **self._bot.status_dict()}
+        guard = self.settings.modules.discord.guard
+        connected = bool(
+            self._bot
+            and not self._bot.is_closed()
+            and self._bot.is_ready()
+        )
+        if connected:
+            base: dict[str, Any] = {"running": True, "connected": True, **self._bot.status_dict()}
+        elif self._running:
+            base = {
+                "running": False,
+                "connected": False,
+                "message": "reconnecting" if not self._reconnect.state.standby_mode else "standby",
+            }
         else:
-            base = {"running": False}
+            base = {"running": False, "connected": False}
+
+        base["version"] = VERSION
+        base["developer"] = DEVELOPER_CREDIT
         base["self_heal"] = self.heal_status_dict()
+        base["resilience"] = self._reconnect.state.to_dict(guard)
+        base["monster_ai"] = self._monster_client.status_dict()
+        base["callguard_bridge"] = self._callguard_bridge.status_dict()
         return base
+
+    @staticmethod
+    def read_logs(limit: int = 50) -> list[dict[str, Any]]:
+        path = Path(LOG_PATH)
+        if not path.is_file():
+            return []
+        lines = path.read_text(encoding="utf-8").splitlines()
+        out: list[dict[str, Any]] = []
+        for line in lines[-limit:]:
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return out
 
     async def start_guard(
         self,
@@ -169,6 +232,8 @@ class DiscordService:
 
         await self._start_bot_task(token)
         self._start_heal_loop()
+        self._heartbeat.start()
+        self._callguard_bridge.start()
 
     def _start_heal_loop(self) -> None:
         guard = self.settings.modules.discord.guard
@@ -202,6 +267,9 @@ class DiscordService:
         if self._fatal_auth_error:
             self._heal_stats.last_error = "fatal_auth"
             return
+        if self._reconnect.state.standby_mode:
+            self._heal_stats.last_error = "standby"
+            return
 
         task_alive = self._task is not None and not self._task.done()
         if task_alive and self._running:
@@ -214,9 +282,13 @@ class DiscordService:
             return
 
         logger.warning("MonsterGuard self-heal: restarting bot (streak=%s)", self._offline_streak)
-        await self._restart_guard(token)
+        await self.restart_guard()
 
-    async def _restart_guard(self, token: str) -> None:
+    async def restart_guard(self, *, force_token: str | None = None) -> dict[str, Any]:
+        self._reconnect.reset()
+        token = force_token or self._sync_token()
+        if not token:
+            return {"ok": False, "error": "missing_token"}
         if self._task and not self._task.done():
             self._task.cancel()
             try:
@@ -229,6 +301,15 @@ class DiscordService:
         await self._start_bot_task(token)
         self._heal_stats.restarts += 1
         self._heal_stats.last_error = None
+        if not self._heartbeat._task or self._heartbeat._task.done():  # noqa: SLF001
+            self._heartbeat.start()
+        if not self._callguard_bridge._task or self._callguard_bridge._task.done():  # noqa: SLF001
+            self._callguard_bridge.start()
+        return {"ok": True, "restarts": self._heal_stats.restarts}
+
+    async def _on_heartbeat_failure(self) -> None:
+        await self._notifier.notify_heartbeat_failure(self._reconnect.state.heartbeat_fail_streak)
+        await self.restart_guard()
 
     async def _start_bot_task(self, token: str) -> None:
         if self._task and not self._task.done():
@@ -244,6 +325,7 @@ class DiscordService:
             repair=self._repair,
             chat=self._chat,
             roleplay=self._roleplay,
+            discord_service=self,
         )
 
     async def _close_bot(self) -> None:
@@ -258,46 +340,28 @@ class DiscordService:
 
     async def _run_bot(self, token: str) -> None:
         guard = self.settings.modules.discord.guard
-        delay = 5.0
-        max_delay = float(guard.self_heal_max_backoff_seconds)
-        while not self._stop:
-            self._create_bot()
-            assert self._bot is not None
-            self._running = True
-            try:
-                await self._bot.start(token)
-                if self._stop:
-                    break
-                logger.warning("MonsterGuard disconnected; reconnecting in %.0fs", delay)
-            except asyncio.CancelledError:
-                break
-            except Exception as exc:  # noqa: BLE001
-                fatal = exc.__class__.__name__
-                self._heal_stats.last_error = fatal
-                if fatal == "LoginFailure":
-                    self._fatal_auth_error = True
-                    logger.error(
-                        "MonsterGuard Discord token invalid. Update discord.token.local to retry."
-                    )
-                    break
-                if fatal == "PrivilegedIntentsRequired":
-                    logger.error(
-                        "MonsterGuard needs Discord Intents: MESSAGE CONTENT INTENT enabled"
-                    )
-                    break
-                logger.exception("MonsterGuard bot crashed: %s", exc)
-            finally:
-                self._running = False
-                await self._close_bot()
 
-            if self._stop or self._fatal_auth_error:
-                break
-            await asyncio.sleep(delay)
-            delay = min(delay * 2, max_delay)
-        self._running = False
+        async def start_bot() -> None:
+            assert self._bot is not None
+            await self._bot.start(token)
+
+        await self._reconnect.run(
+            stop_flag=lambda: self._stop,
+            create_bot=self._create_bot,
+            start_bot=start_bot,
+            close_bot=self._close_bot,
+            on_running=lambda v: setattr(self, "_running", v),
+            on_fatal_auth=lambda: setattr(self, "_fatal_auth_error", True),
+            get_fatal_auth=lambda: self._fatal_auth_error,
+            set_fatal_auth=lambda v: setattr(self, "_fatal_auth_error", v),
+            set_last_error=lambda e: setattr(self._heal_stats, "last_error", e),
+        )
 
     async def stop_guard(self) -> None:
         self._stop = True
+        await self._heartbeat.stop()
+        await self._callguard_bridge.stop()
+        await self._monster_client.close()
         if self._heal_task:
             self._heal_task.cancel()
             try:

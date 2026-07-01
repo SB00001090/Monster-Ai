@@ -1,6 +1,70 @@
-# MonsterGuard — Discord 反詐騙 Bot
+# MonsterGuard v2.1 — Discord 反詐騙 Bot
 
-MonsterGuard 是 Monster AI 內建的 Discord 伺服器保護 Bot，24/7 掃描文字頻道訊息，自動偵測並攔截常見詐騙。
+**Developed by Suckbob | Monster AI Ecosystem**
+
+MonsterGuard 是 Monster AI 內建的 Discord 伺服器保護 Bot，24/7 掃描文字頻道訊息，自動偵測並攔截常見詐騙。v2.1 新增 **Monster AI 動態自我介紹**（`/intro`、`/monsterai`、新成員歡迎）。
+
+---
+
+## English — MonsterGuard v2.0
+
+MonsterGuard v2.0 is the Discord bridge for the Monster AI ecosystem. It provides anti-scam scanning, local LLM chat, and Monster CallGuard alert forwarding with **anti-disconnect resilience**.
+
+### Anti-Disconnect (10 retries → standby)
+
+1. Exponential backoff reconnect (5s → max 300s)
+2. Max **10** attempts, then **standby mode** (stops auto-reconnect)
+3. Heartbeat checks Discord latency + optional Monster AI `/api/status` ping
+4. Discord Webhook / alert channel notifications on disconnect
+5. Manual recovery: `/guard restart` or `POST /api/guard/restart`
+
+### Monster AI Self-Intro (v2.1)
+
+- `/intro` — dynamic personalized intro with live status (connection, blocks, CallGuard)
+- `/monsterai` — alias; defaults to cyberpunk style
+- **Styles:** `guardian` (formal), `cyberpunk` (humorous neon), `privacy` (zero-trust)
+- **Auto welcome:** new members receive intro in system/mod/alert channel
+- Requires **Server Members Intent** in Discord Developer Portal for `on_member_join`
+- Uses local LLM via Monster AI `repair.generate()` with template fallback
+
+### Slash commands (v2.1)
+
+| Command | Description |
+|---------|-------------|
+| `/intro` | Monster AI dynamic self-introduction |
+| `/monsterai` | Same as `/intro` (cyberpunk default) |
+| `/status` | Global health dashboard (neon embed) |
+| `/about` | Version + developer credit |
+| `/ai` | Local LLM chat or scam analyze |
+| `/callguard status` | CallGuard engine status |
+| `/防盜` | Chinese alias for CallGuard |
+| `/guard restart` | Restart bot (Manage Server) |
+| `/guard logs` | Recent structured logs |
+
+### Deployment modes
+
+- **Embedded** (default): `python scripts/launch_monsterguard.py` — runs with Monster AI `main.py`
+- **Standalone**: `python -m monster_ai.modules.discord.standalone`
+- **Docker**: `deploy/monsterguard/docker-compose.yml`
+- **PM2**: `deploy/monsterguard/ecosystem.config.js`
+- **systemd**: `deploy/monsterguard/monsterguard.service`
+
+### Monster CallGuard integration
+
+1. Enable `protection.callguard` in `config.yaml`
+2. Set `modules.discord.guard.callguard_bridge_enabled: true`
+3. Set `MONSTERGUARD_ALERT_CHANNEL_ID` or `notify_channel_id`
+4. Optional: `MONSTER_AI_CONNECT_CONSENT=1` for local AI link
+
+### Security
+
+- Local-first: data stays on your machine
+- User consent required before Monster AI HTTP link (`monster_ai_consent_required`)
+- Never commit `discord.token.local` or webhook URLs
+
+---
+
+## 中文 — MonsterGuard v2.0
 
 ## 可攔截的內容
 
@@ -111,13 +175,43 @@ python scripts\launch_monsterguard.py
 
 | 指令 | 說明 |
 |------|------|
+| `/intro` | Monster AI 動態自我介紹（可選風格） |
+| `/monsterai` | 自我介紹別名（預設 cyberpunk） |
+| `/status` | v2.1 全域健康儀表板 |
+| `/about` | 版本與開發者資訊 |
+| `/ai` | 本地 LLM 對話或詐騙分析 |
+| `/callguard` `/防盜` | Monster CallGuard 狀態與報告 |
 | `/guard setup` | 設定精靈（需管理伺服器） |
 | `/guard features` | 查看可攔截的詐騙類型 |
-| `/guard status` | Bot 與 24h 攔截統計 |
+| `/guard status` | Bot、重連、心跳、24h 攔截統計 |
+| `/guard restart` | 重啟 Bot（待機模式恢復） |
+| `/guard logs` | 結構化日誌（最近 20 條） |
 | `/guard config` | 查看目前伺服器設定 |
 | `/guard education` | 發送防詐教育訊息 |
 | `/chat` | 與本地 Monster AI 對話（Chat Bridge） |
 | `/report-scam` | 回報可疑訊息 |
+
+## 防斷線設定（config.yaml）
+
+```yaml
+modules:
+  discord:
+    guard:
+      max_reconnect_attempts: 10
+      heartbeat_interval_seconds: 30
+      notify_webhook_url: ""          # 或 MONSTERGUARD_WEBHOOK_URL
+      notify_channel_id: 0            # 或 MONSTERGUARD_ALERT_CHANNEL_ID
+      callguard_bridge_enabled: true
+      monster_ai_consent_required: true
+      welcome_intro_enabled: true
+      welcome_intro_style: cyberpunk
+```
+
+### 新成員歡迎設定
+
+1. Developer Portal → Bot → 啟用 **Server Members Intent**
+2. 設定 `mod_channel_id`（`/guard setup`）或 `notify_channel_id` 作為歡迎頻道
+3. 新成員加入時自動發送 Monster AI 介紹 embed
 
 ## 保護強度
 
@@ -131,27 +225,25 @@ python scripts\launch_monsterguard.py
 
 ```
 monster_ai/modules/discord/
-├── bot.py                 # Discord 服務入口
+├── bot.py                 # DiscordService + 防斷線層
+├── constants.py           # v2.0 版本與品牌
 ├── guard/
 │   ├── bot.py             # MonsterGuard Bot
-│   ├── capabilities.py    # 攔截能力說明（單一來源）
-│   ├── pipeline.py        # 規則 → URL → 行為 → AI
-│   ├── scorer.py          # 關鍵字規則評分
-│   ├── url_scanner.py     # 黑名單與仿冒網域
-│   ├── behavior.py        # 洗版 / Raid 偵測
-│   ├── ai_analyzer.py     # Monster AI 語意分析
-│   ├── actions.py         # 刪除 / 警告 / 通知
-│   ├── data/
-│   │   ├── rules/v2026.06.yaml
-│   │   └── blacklists/domains.txt
-│   └── cogs/              # Slash 指令
-└── standalone/__main__.py   # 獨立執行 MonsterGuard
+│   ├── resilience/        # 重連、心跳、通知
+│   ├── integration/       # Monster AI + CallGuard 橋接
+│   ├── ui/embeds.py       # Neon cyberpunk embeds
+│   ├── capabilities.py
+│   ├── pipeline.py
+│   └── cogs/
+└── standalone/__main__.py
+
+deploy/monsterguard/       # Docker / PM2 / systemd
 ```
 
 ## 測試
 
 ```bat
-pytest tests/test_guard_scorer.py tests/test_discord_self_heal.py -q
+pytest tests/test_discord_self_heal.py tests/test_discord_reconnect.py tests/test_discord_heartbeat.py tests/test_discord_callguard_bridge.py tests/test_discord_intro.py -q
 ```
 
 ## 授權

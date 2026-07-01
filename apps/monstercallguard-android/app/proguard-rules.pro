@@ -1,2 +1,6 @@
 -keep class ai.monster.callguard.** { *; }
 -dontwarn okhttp3.**
+-keep class com.android.vending.billing.** { *; }
+-keep class androidx.room.** { *; }
+-keep class androidx.security.crypto.** { *; }
+-keepattributes *Annotation*

@@ -10,6 +10,7 @@ from typing import Any
 import yaml
 
 from monster_ai.config import CallGuardSettings
+from monster_ai.protection.callguard.consensus import ReportConsensus
 from monster_ai.protection.callguard.report import build_anonymous_report
 from monster_ai.protection.callguard.rules import CallScoreResult, load_threat_db, score_call
 
@@ -42,6 +43,12 @@ class CallGuardEngine:
         self._db_path = self._data_dir / "threat_db.yaml"
         self._events: list[dict[str, Any]] = []
         self._db = load_threat_db(self._db_path)
+        self._consensus = ReportConsensus(
+            self._data_dir,
+            min_votes=settings.consensus_min_votes,
+            adopt_threshold=settings.consensus_adopt_threshold,
+        )
+        self._consensus.apply_to_db(self._db)
 
     def _record(self, level: str, message: str, **extra: Any) -> None:
         self._events.append({"ts": time.time(), "level": level, "message": message, **extra})
@@ -132,6 +139,7 @@ class CallGuardEngine:
         result: CallScoreResult,
         *,
         device_contact: dict[str, Any] | None = None,
+        reporter_id: str = "",
     ) -> dict[str, Any]:
         report = build_anonymous_report(
             number,
@@ -141,6 +149,17 @@ class CallGuardEngine:
         )
         if device_contact:
             report["device_contact"] = device_contact
+        consensus = self._consensus.submit(
+            number,
+            category=result.category,
+            score=result.score,
+            signals=result.signals,
+            reporter_id=reporter_id,
+        )
+        report["consensus"] = consensus
+        if consensus.get("adopted"):
+            self._db = self._consensus.apply_to_db(self._db)
+            self._db_path.write_text(yaml.dump(self._db, allow_unicode=True), encoding="utf-8")
         self.state.reports_today += 1
         self._record("ok", "Anonymous report generated", report_id=report["number_hash"][:12])
         reports_dir = self._data_dir / "reports"
@@ -191,8 +210,8 @@ class CallGuardEngine:
         else:
             sha = hashlib.sha256(apk.read_bytes()).hexdigest()
         changelog = (
-            f"v{version}: 香港收數來電拒接 · 設備聯繫網絡鎖定 · "
-            "Tailscale/LAN 家中 Monster AI 同步 · 匿名舉報 ADCC 18222"
+            f"v{version}: Whocall 式來電辨識 · Cloudflare Tunnel 連線 · "
+            "信任分數 · 匿名 hash 回報（無公開留言板）· ADCC 18222"
         )
         return apk.name, sha, version, changelog
 
@@ -210,11 +229,21 @@ class CallGuardEngine:
             "auto_reject_threshold": self.settings.auto_reject_threshold,
             "hk_hotline": self.settings.hk_hotline,
             "events": self.recent_events(10),
+            "consensus": self._consensus.status(),
+            "public_comment_board": self.settings.public_comment_board,
+            "connection_mode": "cloudflare_tunnel",
         }
 
     def app_manifest(self, *, apk_url: str = "", apk_sha256: str = "") -> dict[str, Any]:
         filename, sha, version, changelog = self._resolve_apk(self.root)
-        resolved_url = apk_url or (f"/downloads/{filename}" if filename else "")
+        releases = self.settings.github_releases_page.rstrip("/")
+        repo_base = releases.split("/releases")[0] if "/releases" in releases else releases
+        default_gh = (
+            f"{repo_base}/releases/download/v{version}/{filename}"
+            if filename and repo_base.startswith("http")
+            else ""
+        )
+        resolved_url = apk_url or default_gh or (f"/downloads/{filename}" if filename else "")
         resolved_sha = apk_sha256 or sha
         version_code = int(version.replace(".", "")) if version else 1
         return {
@@ -223,9 +252,13 @@ class CallGuardEngine:
             "apk_url": resolved_url,
             "apk_filename": filename,
             "apk_sha256": resolved_sha,
+            "releases_page": releases or "https://github.com/Suckbob/monster-ai/releases/latest",
             "changelog": changelog,
             "threat_db_version": self.state.threat_db_version,
             "package": "ai.monster.callguard",
-            "distribution": "sideload_only",
+            "distribution": "github_releases",
+            "connection_mode": "cloudflare_tunnel",
+            "qr_code_enabled": False,
             "hk_hotline": self.settings.hk_hotline,
+            "developer": "Suckbob | Monster AI Call Guard",
         }

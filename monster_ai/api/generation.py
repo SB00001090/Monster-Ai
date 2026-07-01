@@ -200,6 +200,14 @@ async def get_image_file(filename: str, request: Request) -> FileResponse:
     return FileResponse(path)
 
 
+@router.get("/files/mini/{filename}")
+async def get_mini_image_file(filename: str, request: Request) -> FileResponse:
+    roots = request.app.state.settings.protection.allowed_data_roots
+    mini_dir = request.app.state.settings.modules.mini.output_dir
+    path = _safe_file(Path(mini_dir) / filename, roots)
+    return FileResponse(path)
+
+
 @router.get("/files/videos/{filename}")
 @router.head("/files/videos/{filename}")
 async def get_video_file(filename: str, request: Request) -> FileResponse:

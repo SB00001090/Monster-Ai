@@ -6,6 +6,7 @@ from typing import Iterable
 
 import httpx
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import JSONResponse
 
 router = APIRouter(tags=["node-proxy"])
 
@@ -38,12 +39,27 @@ async def _proxy_request(request: Request, target_path: str) -> Response:
         url = f"{url}?{request.url.query}"
     body = await request.body()
     headers = _filter_headers(request.headers.items(), _SKIP_REQ_HEADERS)
-    async with httpx.AsyncClient(timeout=120.0, follow_redirects=False) as client:
-        upstream = await client.request(
-            request.method,
-            url,
-            headers=headers,
-            content=body if body else None,
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
+            upstream = await client.request(
+                request.method,
+                url,
+                headers=headers,
+                content=body if body else None,
+            )
+    except httpx.ConnectError:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "node_api_offline",
+                "detail": "Start Node API on :3000 (run.bat or pnpm dev:api)",
+                "node_url": _node_api_url(),
+            },
+        )
+    except httpx.TimeoutException:
+        return JSONResponse(
+            status_code=504,
+            content={"error": "node_api_timeout", "node_url": _node_api_url()},
         )
     return Response(
         content=upstream.content,

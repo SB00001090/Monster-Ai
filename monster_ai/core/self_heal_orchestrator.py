@@ -52,6 +52,7 @@ class SelfHealOrchestrator:
         self._repair = None
         self._watchdog = None
         self._discord = None
+        self._learning = None
         self._monsterlock_dir = root / "data" / "monsterlock"
 
     def bind(
@@ -60,10 +61,12 @@ class SelfHealOrchestrator:
         repair: Any = None,
         watchdog: Any = None,
         discord: Any = None,
+        learning: Any = None,
     ) -> None:
         self._repair = repair
         self._watchdog = watchdog
         self._discord = discord
+        self._learning = learning
 
     async def start(self) -> None:
         if not self.settings.enabled:
@@ -90,6 +93,10 @@ class SelfHealOrchestrator:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         with self.log_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(incident.to_dict(), ensure_ascii=False) + "\n")
+        if self._learning is not None:
+            ingest = getattr(self._learning, "ingest_ops_incident", None)
+            if callable(ingest):
+                ingest(incident.to_dict())
 
     async def _ping(self, url: str) -> bool:
         try:
@@ -180,6 +187,9 @@ class SelfHealOrchestrator:
                 "L1_monitoring": True,
                 "L2_detection": True,
                 "L3_recovery": True,
-                "L4_learning": str(self.log_path),
+                "L4_learning": {
+                    "heal_log": str(self.log_path),
+                    "learning_ingest": self._learning is not None,
+                },
             },
         }

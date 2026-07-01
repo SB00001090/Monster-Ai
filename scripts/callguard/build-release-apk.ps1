@@ -1,72 +1,148 @@
-# 一鍵建置已簽署 MonsterCallGuard Release APK
-param([string]$ProjectRoot = "")
+# Monster Call Guard - Release APK build (no QR code)
+# Developed by Suckbob | Monster AI Call Guard
+# Compatible with Windows PowerShell 5.1
+param(
+    [string]$ProjectRoot = "",
+    [switch]$Pause
+)
 
 $ErrorActionPreference = "Stop"
-if (-not $ProjectRoot) {
-    $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+$logFile = ""
+
+function Write-Log {
+    param([string]$Message, [string]$Color = "White")
+    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $line = "[$ts] $Message"
+    if ($logFile) { Add-Content -Path $logFile -Value $line -Encoding UTF8 }
+    if ($Color -eq "White") { Write-Host $Message } else { Write-Host $Message -ForegroundColor $Color }
 }
 
-$androidDir = Join-Path $ProjectRoot "apps\monstercallguard-android"
-$distDir = Join-Path $ProjectRoot "dist"
-$ksProps = Join-Path $androidDir "keystore.properties"
-
-Write-Host "=== MonsterCallGuard Release APK ===" -ForegroundColor Cyan
-
-if (-not (Test-Path $ksProps)) {
-    Write-Host "Keystore 不存在，執行 generate-keystore.ps1 ..." -ForegroundColor Yellow
-    & (Join-Path $PSScriptRoot "generate-keystore.ps1") -ProjectRoot $ProjectRoot
-}
-
-# Android Studio JBR + SDK
-$jbr = "C:\Program Files\Android\Android Studio\jbr"
-if (Test-Path $jbr) { $env:JAVA_HOME = $jbr }
-if (-not $env:ANDROID_HOME -and (Test-Path "$env:LOCALAPPDATA\Android\Sdk")) {
-    $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-}
-$localProps = Join-Path $androidDir "local.properties"
-if (-not (Test-Path $localProps) -and $env:ANDROID_HOME) {
-    "sdk.dir=$($env:ANDROID_HOME -replace '\\','\\')" | Set-Content $localProps -Encoding ASCII
-}
-
-$gradlew = Join-Path $androidDir "gradlew.bat"
-if (-not (Test-Path $gradlew)) {
-    Write-Host "請先於 Android Studio 開啟專案並 Sync，或執行: gradle wrapper" -ForegroundColor Yellow
+function Stop-WithError {
+    param([string]$Message)
+    Write-Log $Message "Red"
+    Write-Log "Log file: $logFile" "Yellow"
+    if ($Pause) {
+        Write-Host ""
+        Read-Host "Press Enter to close"
+    }
     exit 1
 }
 
-Set-Location $androidDir
-& $gradlew assembleRelease --no-daemon
+try {
+    if (-not $ProjectRoot) {
+        $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+    }
 
-$apkSrc = Join-Path $androidDir "app\build\outputs\apk\release\app-release.apk"
-if (-not (Test-Path $apkSrc)) {
-    Write-Error "Build failed — APK not found at $apkSrc"
+    $androidDir = Join-Path $ProjectRoot "apps\monstercallguard-android"
+    $distDir = Join-Path $ProjectRoot "dist"
+    $ksProps = Join-Path $androidDir "keystore.properties"
+    $gradleFile = Join-Path $androidDir "app\build.gradle.kts"
+    New-Item -ItemType Directory -Force -Path $distDir | Out-Null
+    $logFile = Join-Path $distDir "build-apk-log.txt"
+    Set-Content -Path $logFile -Value "=== MonsterCallGuard build $(Get-Date -Format o) ===" -Encoding UTF8
+
+    Write-Log "=== MonsterCallGuard Release APK ===" "Cyan"
+    Write-Log "Developed by Suckbob | Monster AI Call Guard" "DarkGray"
+    Write-Log "Project: $ProjectRoot"
+
+    if (-not (Test-Path $ksProps)) {
+        Write-Log "Keystore missing, running generate-keystore.ps1 ..." "Yellow"
+        & (Join-Path $PSScriptRoot "generate-keystore.ps1") -ProjectRoot $ProjectRoot
+        if (-not (Test-Path $ksProps)) {
+            Stop-WithError "Keystore setup failed. Run: scripts\callguard\generate-keystore.ps1"
+        }
+    }
+
+    $version = "1.2.0"
+    if (Test-Path $gradleFile) {
+        $m = Select-String -Path $gradleFile -Pattern 'versionName\s*=\s*"([^"]+)"' | Select-Object -First 1
+        if ($m) { $version = $m.Matches.Groups[1].Value }
+    }
+    Write-Log "Version: $version"
+
+    $jbr = "C:\Program Files\Android\Android Studio\jbr"
+    if (Test-Path $jbr) {
+        $env:JAVA_HOME = $jbr
+        Write-Log "JAVA_HOME: $jbr" "DarkGray"
+    } elseif (-not $env:JAVA_HOME) {
+        Stop-WithError "Java not found. Install Android Studio (JBR) or set JAVA_HOME."
+    }
+
+    if (-not $env:ANDROID_HOME -and (Test-Path "$env:LOCALAPPDATA\Android\Sdk")) {
+        $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+    }
+    if (-not $env:ANDROID_HOME -or -not (Test-Path $env:ANDROID_HOME)) {
+        Stop-WithError "Android SDK not found. Install Android Studio and SDK."
+    }
+    Write-Log "ANDROID_HOME: $env:ANDROID_HOME" "DarkGray"
+
+    $localProps = Join-Path $androidDir "local.properties"
+    $sdkEsc = $env:ANDROID_HOME -replace '\\', '\\'
+    "sdk.dir=$sdkEsc" | Set-Content $localProps -Encoding ASCII
+
+    $gradlew = Join-Path $androidDir "gradlew.bat"
+    if (-not (Test-Path $gradlew)) {
+        Stop-WithError "gradlew.bat missing. Open apps\monstercallguard-android in Android Studio and Sync Gradle."
+    }
+
+    Write-Log "Running Gradle assembleRelease (1-10 min) ..." "Cyan"
+    Push-Location $androidDir
+    try {
+        $gradleOut = & $gradlew assembleRelease --no-daemon 2>&1
+        $gradleExit = $LASTEXITCODE
+        $gradleOut | ForEach-Object {
+            $t = "$_"
+            Write-Host $t
+            Add-Content -Path $logFile -Value $t -Encoding UTF8
+        }
+        if ($gradleExit -ne 0) {
+            Stop-WithError "Gradle failed (exit $gradleExit). See $logFile"
+        }
+    } finally {
+        Pop-Location
+    }
+
+    $apkSrc = Join-Path $androidDir "app\build\outputs\apk\release\app-release.apk"
+    if (-not (Test-Path $apkSrc)) {
+        Stop-WithError "APK not found: $apkSrc"
+    }
+
+    $apkName = "MonsterCallGuard-v$version-signed.apk"
+    $apkDst = Join-Path $distDir $apkName
+    Copy-Item $apkSrc $apkDst -Force
+
+    $hash = (Get-FileHash $apkDst -Algorithm SHA256).Hash.ToLower()
+    $hashFile = "$apkDst.sha256"
+    "$hash  $apkName" | Set-Content $hashFile -Encoding ASCII
+
+    $manifestPath = Join-Path $distDir "callguard-release.json"
+    @{
+        version = $version
+        apk = $apkName
+        sha256 = $hash
+        github_tag = "v$version"
+        apk_url = "https://github.com/Suckbob/monster-ai/releases/download/v$version/$apkName"
+        releases_page = "https://github.com/Suckbob/monster-ai/releases/latest"
+        qr_code = $false
+        connection = "cloudflare_tunnel"
+    } | ConvertTo-Json | Set-Content $manifestPath -Encoding UTF8
+
+    Write-Log ""
+    Write-Log "[OK] APK: $apkDst" "Green"
+    Write-Log "SHA256: $hash" "Green"
+    Write-Log "Manifest: $manifestPath"
+    Write-Log "Publish: scripts\callguard\publish-github-release.ps1 -Version $version" "Cyan"
+
+    if ($Pause) {
+        Write-Host ""
+        Read-Host "Build done. Press Enter to close"
+    }
+    exit 0
+} catch {
+    $err = $_.Exception.Message
+    if ($logFile) { Add-Content -Path $logFile -Value "FATAL: $err" -Encoding UTF8 }
+    Write-Host "[ERROR] $err" -ForegroundColor Red
+    Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
+    if ($Pause) { Read-Host "Press Enter to close" }
+    exit 1
 }
-
-New-Item -ItemType Directory -Force -Path $distDir | Out-Null
-$version = "1.0.0"
-$apkDst = Join-Path $distDir "MonsterCallGuard-v$version-signed.apk"
-Copy-Item $apkSrc $apkDst -Force
-
-$hash = (Get-FileHash $apkDst -Algorithm SHA256).Hash.ToLower()
-$hashFile = "$apkDst.sha256"
-"$hash  MonsterCallGuard-v$version-signed.apk" | Set-Content $hashFile -Encoding ASCII
-
-Write-Host "`n[OK] APK: $apkDst" -ForegroundColor Green
-Write-Host "SHA256: $hash"
-Write-Host "Hash file: $hashFile"
-
-# 可選 QR code
-$py = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
-if (Test-Path $py) {
-    & $py -c @"
-try:
-    import qrcode
-    qr = qrcode.make('file:///$($apkDst -replace '\\','/')')
-    qr.save(r'$distDir\install-qr.png')
-    print('QR: $distDir\install-qr.png')
-except ImportError:
-    print('pip install qrcode[pil] for QR generation')
-"@ 2>$null
-}
-
-Write-Host "`n側載安裝教學: scripts\callguard\INSTALL_SIDELoad.md" -ForegroundColor Cyan

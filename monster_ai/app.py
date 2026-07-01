@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -67,8 +69,39 @@ from monster_ai.protection.crimeguard import CrimeGuardEngine
 from monster_ai.protection.monsterlock import MonsterLockEngine
 from monster_ai.protection.tier_orchestrator import ProtectionTierOrchestrator
 from monster_ai.api.callguard import router as callguard_router
+from monster_ai.api.dify import router as dify_router
+from monster_ai.api.ecosystem import router as ecosystem_router
+from monster_ai.api.integrations import router as integrations_router
+from monster_ai.api.commercial import router as commercial_router
+from monster_ai.api.mini import router as mini_router
+from monster_ai.api.guardian import router as guardian_router
+from monster_ai.modules.dify.bridge import DifyBridge
+from monster_ai.modules.guardian import GuardianService
+from monster_ai.modules.ecosystem.installer import EcosystemInstaller
+from monster_ai.modules.mini.service import MiniMonsterService
 
 logger = logging.getLogger(__name__)
+
+
+def _init_sentry(settings: Settings) -> None:
+    if not settings.integrations.sentry_enabled:
+        return
+    dsn = os.environ.get(settings.integrations.sentry_dsn_env, "")
+    if not dsn:
+        return
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+        sentry_sdk.init(
+            dsn=dsn,
+            integrations=[FastApiIntegration()],
+            traces_sample_rate=0.1,
+            environment=os.environ.get("MONSTER_ENV", "production"),
+        )
+        logger.info("Sentry error tracking enabled")
+    except ImportError:
+        logger.warning("sentry-sdk not installed — pip install sentry-sdk[fastapi]")
 
 
 def _ensure_data_dirs() -> None:
@@ -104,6 +137,20 @@ def _ensure_data_dirs() -> None:
         "learning/users",
         "learning/characters",
         "learning/knowledge",
+        "mini",
+        "mini/network_cache",
+        "outputs/mini",
+        "ecosystem",
+        "guardian/cloud",
+        "guardian/chat_vault",
+        "guardian/oc_fingerprints",
+        "guardian/error_learning",
+        "guardian/grok_supervision",
+        "guardian/training_vault/good",
+        "guardian/training_vault/bad",
+        "guardian/training_vault/template",
+        "guardian/training_vault/prompt",
+        "guardian/training_vault/lora",
     ):
         (Path("./data") / sub).mkdir(parents=True, exist_ok=True)
 
@@ -158,6 +205,7 @@ async def lifespan(app: FastAPI):
 def create_app(settings: Settings) -> FastAPI:
     _ensure_data_dirs()
     _setup_file_logging()
+    _init_sentry(settings)
 
     app = FastAPI(
         title="Monster AI",
@@ -165,6 +213,16 @@ def create_app(settings: Settings) -> FastAPI:
         version=__version__,
         lifespan=lifespan,
     )
+
+    if settings.web.cors_enabled:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.web.cors_origins,
+            allow_origin_regex=r"https://.*\.pages\.dev",
+            allow_credentials=settings.web.allow_credentials,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     root = Path(__file__).resolve().parent.parent
     probe = detect_hardware()
@@ -205,12 +263,49 @@ def create_app(settings: Settings) -> FastAPI:
     watchdog = Watchdog(settings, code_repair, firewall.hub, root)
     prompt_enhancer = PromptEnhancer(settings, repair)
     quality_scorer = ImageQualityScorer(settings.modules.image.quality)
+    guardian_svc = GuardianService(
+        settings.guardian,
+        repair=repair,
+        learning=None,
+        repo_root=root,
+        hardware_fingerprint=monsterlock.state.fingerprint,
+    )
     quality_store = QualityStore(
-        settings.modules.image.quality.data_dir, settings.modules.image.quality
+        settings.modules.image.quality.data_dir,
+        settings.modules.image.quality,
+        training_vault=guardian_svc.training_vault,
+        encrypt_training=(
+            settings.guardian.training_encryption_enabled
+            and settings.guardian.encrypt_quality_assets
+            and guardian_svc.training_vault is not None
+        ),
     )
     image_repair = ImageRepairEngine(settings.modules.image.quality)
     prompt_refiner = PromptRefiner(repair)
     learning = LearningEngine(settings.learning, repair)
+    from monster_ai.modules.learning.image_knowledge import ImageKnowledgeLearner
+
+    image_learner = ImageKnowledgeLearner(
+        learning.store,
+        settings.modules.image.quality,
+        settings.learning,
+        repair,
+        quality_store=quality_store,
+    )
+    learning.bind_image_learner(image_learner)
+    guardian_svc.learning = learning
+
+    def _web_network_allowed() -> tuple[bool, str]:
+        if crimeguard.state.network_locked:
+            return False, "network_locked"
+        return True, ""
+
+    learning.web.set_network_guard(_web_network_allowed)
+    ecosystem = EcosystemInstaller(
+        settings.ecosystem,
+        root=root,
+        network_guard=_web_network_allowed,
+    )
     self_heal = SelfHealOrchestrator(settings.repair.orchestrator, root)
 
     chat = ChatService(repair, settings, learning=learning)
@@ -225,6 +320,7 @@ def create_app(settings: Settings) -> FastAPI:
         image_repair,
         prompt_refiner,
         history=history,
+        image_learner=image_learner,
     )
     roleplay = RoleplayService(
         settings, repair, image_service=image, history=history, learning=learning
@@ -247,11 +343,21 @@ def create_app(settings: Settings) -> FastAPI:
     modules.register(image)
     modules.register(video)
     discord_svc = DiscordService(settings)
-    self_heal.bind(repair=repair, watchdog=watchdog, discord=discord_svc)
+    self_heal.bind(repair=repair, watchdog=watchdog, discord=discord_svc, learning=learning)
     modules.register(learning)
     modules.register(discord_svc)
     modules.register(tts)
-    modules.register(TrainingService(settings))
+    modules.register(TrainingService(settings, root))
+    mini_svc = MiniMonsterService(
+        settings.modules.mini,
+        image,
+        repair,
+        learning=learning,
+        tts=tts,
+        network_guard=_web_network_allowed,
+    )
+    modules.register(mini_svc)
+    modules.register(guardian_svc)
 
     @app.middleware("http")
     async def firewall_middleware(request: Request, call_next):
@@ -304,6 +410,10 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.tts = tts
     app.state.modules = modules
     app.state.discord = discord_svc
+    app.state.mini = mini_svc
+    app.state.guardian = guardian_svc
+    app.state.ecosystem = ecosystem
+    app.state.dify = DifyBridge(settings.dify)
     app.state.rate_limiter = RateLimiter(settings.protection.rate_limit_per_minute)
     app.state.version = __version__
 
@@ -315,6 +425,12 @@ def create_app(settings: Settings) -> FastAPI:
     app.include_router(guard_router)
     app.include_router(heal_router)
     app.include_router(learning_router)
+    app.include_router(mini_router)
+    app.include_router(ecosystem_router)
+    app.include_router(dify_router)
+    app.include_router(integrations_router)
+    app.include_router(commercial_router)
+    app.include_router(guardian_router)
     app.include_router(roleplay_router)
     app.include_router(ws_router)
     app.include_router(node_proxy_router)
@@ -323,6 +439,16 @@ def create_app(settings: Settings) -> FastAPI:
     dist_dir = project_root / "dist"
     if dist_dir.is_dir():
         app.mount("/downloads", StaticFiles(directory=dist_dir), name="downloads")
+    mini_static = Path(__file__).parent / "web" / "static" / "mini"
+    if mini_static.is_dir():
+        app.mount("/mini", StaticFiles(directory=mini_static, html=True), name="mini_ui")
+    ecosystem_static = Path(__file__).parent / "web" / "static" / "ecosystem"
+    if ecosystem_static.is_dir():
+        app.mount(
+            "/ecosystem",
+            StaticFiles(directory=ecosystem_static, html=True),
+            name="ecosystem_ui",
+        )
     built_ui = project_root / "dist" / "public"
     static_dir = built_ui if built_ui.is_dir() else Path(__file__).parent / "web" / "static"
     app.mount("/", SPAStaticFiles(directory=static_dir, html=True), name="static")

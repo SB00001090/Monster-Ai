@@ -123,6 +123,9 @@ class RoleplayService:
         session_id: str,
         message: str,
         character_id: str | None = None,
+        *,
+        user_id: str | None = None,
+        web_search: bool | None = None,
     ) -> dict[str, Any]:
         session = self.store.load(session_id)
         if not session:
@@ -153,20 +156,36 @@ class RoleplayService:
             self.settings.persona.default_mode if self.settings.persona.enabled else "off",
             system,
             chat_mode="roleplay",
+            locale=self.settings.persona.response_locale,
         )
+        effective_user = user_id or session_id
         quality_meta: dict[str, Any] | None = None
-        if self.learning and self.learning.settings.enabled and self.learning.settings.reflect_enabled:
-            gen = await self.learning.generate_with_reflect(
+        web_lore_used = False
+        if self.learning and self.learning.settings.enabled:
+            gen = await self.learning.generate(
                 user_message=message,
                 system=resolved,
-                user_id=session_id,
+                user_id=effective_user,
                 character_id=character.id if character else None,
                 session_id=session_id,
+                web_search=web_search,
+                mode="roleplay",
+                character_name=character.name if character else "",
+                scenario=character.scenario if character else "",
+                memory_summary=session.memory_summary,
             )
             reply = gen["content"]
             quality_meta = gen.get("quality")
+            web_lore_used = bool(gen.get("web_knowledge_used"))
         else:
-            reply = await self.repair.generate(message, system=resolved)
+            enriched = resolved
+            if self.learning:
+                enriched = self.learning.enrich_system(
+                    resolved,
+                    user_id=effective_user,
+                    character_id=character.id if character else None,
+                )
+            reply = await self.repair.generate(message, system=enriched)
 
         session.messages.append({
             "role": "assistant",
@@ -192,7 +211,32 @@ class RoleplayService:
         }
         if quality_meta:
             out["quality"] = quality_meta
+        if web_lore_used:
+            out["web_lore_used"] = True
         return out
+
+    async def learn_lore(
+        self,
+        query: str,
+        *,
+        character_id: str | None = None,
+        session_id: str | None = None,
+        force_refresh: bool = False,
+    ) -> dict[str, Any]:
+        if not self.learning:
+            return {"ok": False, "reason": "learning_not_connected"}
+        character = self.get_character(character_id) if character_id else None
+        if not character and session_id:
+            session = self.get_session(session_id)
+            if session and session.active_character_id:
+                character = self.get_character(session.active_character_id)
+        return await self.learning.learn_roleplay_lore(
+            query,
+            character_id=character.id if character else character_id,
+            character_name=character.name if character else "",
+            scenario=character.scenario if character else "",
+            force_refresh=force_refresh,
+        )
 
     async def generate_portrait(
         self,

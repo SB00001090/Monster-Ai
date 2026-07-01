@@ -1,0 +1,15 @@
+[Unit]
+Description=MonsterGuard Discord Bot v2.0
+After=network.target
+
+[Service]
+Type=simple
+User=monster
+WorkingDirectory=/opt/monster-ai
+Environment=MONSTER_AI_CONNECT_CONSENT=1
+ExecStart=/opt/monster-ai/.venv/bin/python -m monster_ai.modules.discord.standalone
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -42,11 +42,11 @@
             android:hint="家中 Monster AI LAN IP (例 192.168.1.16，不是手機 IP)" />
 
         <EditText
-            android:id="@+id/tailscaleHost"
+            android:id="@+id/tunnelUrlLegacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="Tailscale (例 tm0721.taile4ca68.ts.net)" />
+            android:hint="Cloudflare Tunnel (https://xxx.trycloudflare.com)" />
 
         <EditText
             android:id="@+id/homeUrl"

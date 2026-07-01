@@ -4,11 +4,41 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 router = APIRouter()
 
 _LEGACY_STATIC = Path(__file__).resolve().parents[1] / "web" / "static"
+_MINI_STATIC = _LEGACY_STATIC / "mini"
+_ECOSYSTEM_STATIC = _LEGACY_STATIC / "ecosystem"
+
+
+@router.get("/ecosystem")
+async def ecosystem_ui_redirect() -> RedirectResponse:
+    """Ecosystem one-click installer UI — bypass React SPA 404."""
+    return RedirectResponse(url="/ecosystem/index.html", status_code=302)
+
+
+@router.get("/ecosystem/index.html")
+async def ecosystem_ui_html() -> FileResponse:
+    return FileResponse(
+        _ECOSYSTEM_STATIC / "index.html",
+        media_type="text/html; charset=utf-8",
+    )
+
+
+@router.get("/mini")
+async def mini_ui_redirect() -> RedirectResponse:
+    """Mini Monster AI UI — bypass React SPA 404."""
+    return RedirectResponse(url="/mini/index.html", status_code=302)
+
+
+@router.get("/mini/index.html")
+async def mini_ui_html() -> FileResponse:
+    return FileResponse(
+        _MINI_STATIC / "index.html",
+        media_type="text/html; charset=utf-8",
+    )
 
 
 @router.get("/monsterai-security.html")

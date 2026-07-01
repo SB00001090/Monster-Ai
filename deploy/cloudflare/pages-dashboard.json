@@ -1,0 +1,20 @@
+{
+  "project_name": "monster-ai",
+  "production_branch": "main",
+  "build_command": "pnpm install && pnpm build",
+  "build_output_directory": "dist/public",
+  "root_directory": "/",
+  "node_version": "20",
+  "environment_variables": {
+    "production": {
+      "VITE_MONSTER_API_URL": "https://YOUR-TUNNEL.trycloudflare.com",
+      "NODE_VERSION": "20"
+    },
+    "preview": {
+      "VITE_MONSTER_API_URL": "https://YOUR-TUNNEL.trycloudflare.com"
+    }
+  },
+  "github_repo": "SB00001090/Monster-Ai-Bot",
+  "custom_domain_optional": "monster-ai.yourdomain.com",
+  "pages_url": "https://monster-ai.pages.dev"
+}

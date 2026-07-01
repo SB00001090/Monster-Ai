@@ -1,0 +1,117 @@
+{
+  "name": "MonsterGuardian_AI_FullStack",
+  "description": "聊天區安全 + OC 保護 + 品質控制 + 錯誤處理 + 雲端同步 E2E",
+  "developer": "Suckbob | Monster Guardian AI",
+  "variables": {
+    "MONSTER_TUNNEL_URL": "https://xxx.trycloudflare.com",
+    "SENTRY_INGEST_URL": "",
+    "QUALITY_THRESHOLD": "0.70"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "inputs": ["user_message", "oc_card_json", "session_id", "quality_score", "error_context"]
+    },
+    {
+      "id": "disclaimer_gate",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/disclaimer?locale=zh-TW",
+      "note": "硬編碼免責聲明 — 每次會話可快取"
+    },
+    {
+      "id": "oc_protect",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/oc/protect",
+      "body": {"card": "{{oc_card_json}}"}
+    },
+    {
+      "id": "training_vault_check",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/training/status",
+      "note": "確認訓練檔案已加密 — plaintext_forbidden 必須 true"
+    },
+    {
+      "id": "quality_gate",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/quality/gate",
+      "body": {"score": "{{quality_score}}"}
+    },
+    {
+      "id": "quality_branch",
+      "type": "if-else",
+      "condition": "{{quality_gate.passed}} == true"
+    },
+    {
+      "id": "vault_store",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/vault/message",
+      "note": "Ephemeral 或加密 vault — vault_key 由客戶端 E2E 持有",
+      "body": {
+        "session_id": "{{session_id}}",
+        "message": {"role": "user", "content": "{{user_message}}"},
+        "vault_key": "{{CLIENT_VAULT_KEY}}",
+        "ephemeral": true
+      }
+    },
+    {
+      "id": "chat_generate",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/roleplay/chat",
+      "note": "多模態 RP — 本地 Grok persona"
+    },
+    {
+      "id": "error_report",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/errors/report",
+      "condition": "on_failure",
+      "body": {
+        "error_type": "WorkflowError",
+        "message": "{{error_context}}",
+        "source": "dify"
+      }
+    },
+    {
+      "id": "grok_supervise",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/learning/supervise",
+      "note": "Grok 監督學習優先級"
+    },
+    {
+      "id": "cloud_sync_optional",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/sync/upload",
+      "note": "用戶同意後 E2E 上傳 oc_cards / chat_sessions",
+      "body": {
+        "provider": "{{OAUTH_PROVIDER}}",
+        "provider_sub": "{{OAUTH_SUB}}",
+        "passphrase": "{{USER_PASSPHRASE}}",
+        "bundle_type": "chat_sessions",
+        "payload": "{{ENCRYPTED_BUNDLE_CLIENT}}"
+      }
+    },
+    {
+      "id": "sentry_notify",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{SENTRY_INGEST_URL}}",
+      "condition": "quality_branch == false OR error_report"
+    }
+  ],
+  "privacy": {
+    "e2e_encryption_required": true,
+    "no_tailscale": true,
+    "no_qr_code": true,
+    "oc_fingerprint_local": true,
+    "public_comment_board": false
+  }
+}

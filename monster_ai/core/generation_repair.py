@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Awaitable, Callable, TypeVar
 
+import numpy as np
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -31,15 +32,38 @@ class GenerationRepairState:
     last_quality_score: float | None = None
 
 
-def validate_image_file(path: Path, min_bytes: int = 1024) -> bool:
+def is_alive_image(path: Path, *, min_bytes: int = 1024) -> bool:
+    """Reject corrupt, blank, and near-dead outputs before serving."""
     if not path.exists() or path.stat().st_size < min_bytes:
         return False
     try:
         with Image.open(path) as img:
             img.verify()
+        with Image.open(path) as img:
+            rgb = img.convert("RGB")
+            w, h = rgb.size
+            if w < 64 or h < 64:
+                return False
+            # Downsample for fast blank/collapse detection
+            thumb = rgb.resize((max(32, w // 16), max(32, h // 16)), Image.Resampling.BILINEAR)
+            gray = np.asarray(thumb.convert("RGB"), dtype=np.float32).mean(axis=2)
+            if gray.size == 0:
+                return False
+            mean_b = float(gray.mean())
+            std_b = float(gray.std())
+            if mean_b < 6 and std_b < 4:
+                return False
+            if mean_b > 250 and std_b < 4:
+                return False
+            if std_b < 1.0 and (mean_b < 12 or mean_b > 245):
+                return False
         return True
     except OSError:
         return False
+
+
+def validate_image_file(path: Path, min_bytes: int = 1024) -> bool:
+    return is_alive_image(path, min_bytes=min_bytes)
 
 
 def validate_video_file(path: Path, min_bytes: int = 2048) -> bool:

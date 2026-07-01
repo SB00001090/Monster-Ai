@@ -61,9 +61,13 @@ export interface AppManifest {
   apk_url: string;
   apk_filename: string;
   apk_sha256: string;
+  releases_page?: string;
   changelog: string;
   threat_db_version: string;
   hk_hotline: string;
+  connection_mode?: string;
+  qr_code_enabled?: boolean;
+  developer?: string;
 }
 
 export interface AnonymousReport {

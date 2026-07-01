@@ -1,11 +1,20 @@
 package ai.monster.callguard.ui
 
-import ai.monster.callguard.ProtectionState
-import ai.monster.callguard.R
+import ai.monster.callguard.antitheft.AntiTheftForegroundService
+import ai.monster.callguard.billing.BillingManager
+import ai.monster.callguard.billing.TrialManager
+import ai.monster.callguard.network.ConnectionManager
+import ai.monster.callguard.network.ConnectionMode
+import ai.monster.callguard.network.ConnectionState
 import ai.monster.callguard.network.HomeMonsterClient
-import ai.monster.callguard.network.LanDiscovery
+import ai.monster.callguard.network.TunnelConnection
 import ai.monster.callguard.service.CallGuardForegroundService
-import ai.monster.callguard.service.LockdownVpnService
+import ai.monster.callguard.sync.SyncScheduler
+import ai.monster.callguard.ui.screens.AntiTheftScreen
+import ai.monster.callguard.ui.screens.HomeScreen
+import ai.monster.callguard.ui.screens.PaywallScreen
+import ai.monster.callguard.ui.screens.PrivacyScreen
+import ai.monster.callguard.ui.theme.MonsterCallGuardTheme
 import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
@@ -14,185 +23,228 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import java.io.File
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
+import java.io.File
+import java.util.concurrent.TimeUnit
 
-class MainActivity : AppCompatActivity() {
-    private val handler = Handler(Looper.getMainLooper())
+/** Developed by Suckbob | Monster AI Call Guard */
+class MainActivity : ComponentActivity() {
+    private lateinit var trialManager: TrialManager
+    private lateinit var billingManager: BillingManager
+    private val prefs by lazy { getSharedPreferences("callguard", Context.MODE_PRIVATE) }
+    private val connectionManager by lazy { ConnectionManager.get(this) }
+
+    private var statusText by mutableStateOf("")
+    private var trialLabel by mutableStateOf("")
+    private var tunnelUrl by mutableStateOf("")
+    private var antiTheftEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        trialManager = TrialManager(this)
+        trialManager.ensureTrialStarted()
+        billingManager = BillingManager(this, trialManager) { refreshTrialLabel() }
+        billingManager.start()
+
+        tunnelUrl = TunnelConnection.loadSaved(this).orEmpty()
+        antiTheftEnabled = prefs.getBoolean("antitheft_enabled", false)
+        statusText = readCrashLog().ifBlank { TunnelConnection.setupHint() }
+        refreshTrialLabel()
         requestRuntimePermissions()
+        SyncScheduler.schedule(this)
 
-        val prefs = getSharedPreferences("callguard", Context.MODE_PRIVATE)
-        val statusView = findViewById<TextView>(R.id.status)
-        val crash = readCrashLog()
-        if (crash.isNotBlank()) {
-            statusView.text = "上次崩潰紀錄：\n$crash"
-        }
+        lifecycleScope.launch { connectionManager.probeHealth() }
 
-        val lanField = findViewById<EditText>(R.id.lanHost)
-        val tailscaleField = findViewById<EditText>(R.id.tailscaleHost)
-        lanField.setText(prefs.getString("lan_host", ""))
-        tailscaleField.setText(prefs.getString("tailscale_host", ""))
-        findViewById<EditText>(R.id.homeUrl).setText(prefs.getString("home_url", ""))
-
-        findViewById<Button>(R.id.autoDiscover).setOnClickListener {
-            runAutoDiscover(prefs, lanField, tailscaleField, statusView, saveAfterFind = true)
-        }
-
-        if (prefs.getString("lan_host", "").isNullOrBlank() &&
-            prefs.getString("tailscale_host", "").isNullOrBlank() &&
-            prefs.getString("home_url", "").isNullOrBlank()
-        ) {
-            runAutoDiscover(prefs, lanField, tailscaleField, statusView, saveAfterFind = true)
-        }
-
-        findViewById<Button>(R.id.saveHosts).setOnClickListener {
-            prefs.edit()
-                .putString("lan_host", findViewById<EditText>(R.id.lanHost).text.toString())
-                .putString("tailscale_host", findViewById<EditText>(R.id.tailscaleHost).text.toString())
-                .putString("home_url", findViewById<EditText>(R.id.homeUrl).text.toString())
-                .apply()
-            Toast.makeText(this, "已儲存", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<Button>(R.id.testConnection).setOnClickListener {
-            Thread {
-                val msg = HomeMonsterClient(this).testConnection()
-                runOnUiThread {
-                    findViewById<TextView>(R.id.status).text = msg
-                }
-            }.start()
-        }
-
-        findViewById<Button>(R.id.enableScreening).setOnClickListener { requestCallScreeningRole() }
-        findViewById<Button>(R.id.startProtection).setOnClickListener {
-            prefs.edit().putBoolean("protection_enabled", true).apply()
-            CallGuardForegroundService.start(this)
-            Toast.makeText(this, "背景保護已啟動", Toast.LENGTH_SHORT).show()
-        }
-        findViewById<Button>(R.id.batteryOpt).setOnClickListener { requestBatteryExemption() }
-        findViewById<Button>(R.id.unlockNetwork).setOnClickListener {
-            LockdownVpnService.stop(this)
-            ProtectionState.resetHighRisk()
-            Toast.makeText(this, "已請求解除網絡鎖定", Toast.LENGTH_SHORT).show()
-        }
-        findViewById<Button>(R.id.callHotline).setOnClickListener {
-            startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:18222")))
-        }
-
-        handler.post(object : Runnable {
-            override fun run() {
-                val locked = ProtectionState.networkLocked.get()
-                val rejects = ProtectionState.rejectsToday.get()
-                findViewById<TextView>(R.id.stats).text =
-                    "今日拒接: $rejects · 網絡鎖定: ${if (locked) "是" else "否"}"
-                handler.postDelayed(this, 2000)
-            }
-        })
-    }
-
-    private fun requestRuntimePermissions() {
-        val perms = mutableListOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            perms.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
-        val needed = perms.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (needed.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, needed.toTypedArray(), 100)
-        }
-    }
-
-    private fun runAutoDiscover(
-        prefs: android.content.SharedPreferences,
-        lanField: EditText,
-        tailscaleField: EditText,
-        statusView: TextView,
-        saveAfterFind: Boolean,
-    ) {
-        statusView.text = "正在自動偵測（區網 + Tailscale）…"
-        Thread {
-            val result = LanDiscovery.discover(applicationContext)
-            val local = LanDiscovery.getLocalIpv4(applicationContext)
-            runOnUiThread {
-                if (result != null) {
-                    if (result.mode == "tailscale") {
-                        tailscaleField.setText(result.host)
-                        lanField.setText("")
-                        if (saveAfterFind) {
-                            prefs.edit()
-                                .putString("tailscale_host", result.host)
-                                .putString("lan_host", "")
-                                .apply()
+        setContent {
+            MonsterCallGuardTheme {
+                val nav = rememberNavController()
+                val connState by connectionManager.state.collectAsState()
+                val connMode by connectionManager.mode.collectAsState()
+                Scaffold { pad ->
+                    NavHost(nav, "home", Modifier.padding(pad)) {
+                        composable("home") {
+                            HomeScreen(
+                                statusText = statusText,
+                                tunnelUrl = tunnelUrl,
+                                connectionState = connState,
+                                connectionMode = connMode,
+                                trialLabel = trialLabel,
+                                onTunnelChange = { tunnelUrl = it },
+                                onSave = { saveTunnel() },
+                                onTest = { testConnection() },
+                                onEnableScreening = { requestCallScreeningRole() },
+                                onStartProtection = { startProtection() },
+                                onNavPaywall = { nav.navigate("paywall") },
+                                onNavPrivacy = { nav.navigate("privacy") },
+                                onNavAntiTheft = { nav.navigate("antitheft") },
+                            )
                         }
-                        statusView.text = "已透過 Tailscale 找到：${result.host}（手機 IP：${local ?: "未知"}）"
-                    } else {
-                        lanField.setText(result.host)
-                        if (saveAfterFind) {
-                            prefs.edit().putString("lan_host", result.host).apply()
+                        composable("paywall") {
+                            PaywallScreen(
+                                trialManager = trialManager,
+                                billingManager = billingManager,
+                                onPurchase = { billingManager.launchPurchase(this@MainActivity) },
+                                onRestore = { billingManager.restorePurchases() },
+                            )
                         }
-                        statusView.text = "已透過區網找到：${result.host}（手機 IP：${local ?: "未知"}）"
+                        composable("privacy") { PrivacyScreen() }
+                        composable("antitheft") {
+                            AntiTheftScreen(
+                                enabled = antiTheftEnabled,
+                                premium = trialManager.hasPremiumAccess(),
+                                onToggle = { on -> setAntiTheft(on) },
+                            )
+                        }
                     }
-                    Toast.makeText(this, "已連線至 ${result.host}", Toast.LENGTH_SHORT).show()
-                } else {
-                    statusView.text = LanDiscovery.failureHint(local)
                 }
             }
-        }.start()
-    }
-
-    private fun readCrashLog(): String {
-        return try {
-            val f = File(filesDir, "last_crash.txt")
-            if (!f.exists()) return ""
-            f.readText().take(500)
-        } catch (_: Exception) {
-            ""
         }
     }
 
-    private fun requestBatteryExemption() {
-        val pm = getSystemService(PowerManager::class.java) ?: return
-        if (pm.isIgnoringBatteryOptimizations(packageName)) {
-            Toast.makeText(this, "已關閉電池最佳化限制", Toast.LENGTH_SHORT).show()
+    override fun onDestroy() {
+        billingManager.destroy()
+        super.onDestroy()
+    }
+
+    private fun refreshTrialLabel() {
+        trialLabel = when {
+            trialManager.isPurchased() -> "已永久解鎖 ✓"
+            trialManager.isTrialActive() -> {
+                val ms = trialManager.trialRemainingMs()
+                val d = TimeUnit.MILLISECONDS.toDays(ms)
+                val h = TimeUnit.MILLISECONDS.toHours(ms) % 24
+                "試用中 · 剩餘 ${d}天${h}時"
+            }
+            else -> "試用已結束 · 請永久解鎖"
+        }
+    }
+
+    private fun saveTunnel() {
+        val err = TunnelConnection.validateOrError(tunnelUrl)
+        if (err != null) {
+            statusText = err
+            Toast.makeText(this, err, Toast.LENGTH_LONG).show()
             return
         }
-        try {
-            startActivity(
-                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = Uri.parse("package:$packageName")
-                },
-            )
-        } catch (_: Exception) {
-            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        val saved = connectionManager.saveTunnelUrl(tunnelUrl)
+        if (saved == null) {
+            Toast.makeText(this, "無效 URL", Toast.LENGTH_SHORT).show()
+            return
         }
-        Toast.makeText(
-            this,
-            "DOOGEE：請同時到 設定→應用程式→MonsterCallGuard→自動啟動→開啟",
-            Toast.LENGTH_LONG,
-        ).show()
+        tunnelUrl = saved
+        Toast.makeText(this, "已儲存 Tunnel URL", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            statusText = HomeMonsterClient(this@MainActivity).testConnection()
+        }
+    }
+
+    private fun testConnection() {
+        lifecycleScope.launch {
+            statusText = "測試連線中…"
+            statusText = HomeMonsterClient(this@MainActivity).testConnection()
+        }
+    }
+
+    private fun startProtection() {
+        val hasUsb = connectionManager.mode.value == ConnectionMode.USB_LOCAL ||
+            connectionManager.getBaseUrl()?.startsWith("http://127.0.0.1") == true
+        val hasTunnel = connectionManager.getTunnelUrl() != null
+        if (!hasUsb && !hasTunnel) {
+            Toast.makeText(this, "請 USB 連接電腦或設定 Tunnel URL", Toast.LENGTH_LONG).show()
+            return
+        }
+        prefs.edit().putBoolean("protection_enabled", true).apply()
+        CallGuardForegroundService.start(this)
+        Toast.makeText(this, "背景保護已啟動", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setAntiTheft(on: Boolean) {
+        antiTheftEnabled = on
+        prefs.edit().putBoolean("antitheft_enabled", on).apply()
+        if (on && trialManager.hasPremiumAccess()) {
+            requestAntiTheftPermissions()
+            AntiTheftForegroundService.start(this)
+        } else {
+            AntiTheftForegroundService.stop(this)
+        }
     }
 
     private fun requestCallScreeningRole() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val role = getSystemService(RoleManager::class.java)
-            if (role != null && role.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
-                startActivity(role.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING))
+            val rm = getSystemService(RoleManager::class.java)
+            if (rm.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
+                startActivityForResult(rm.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING), 42)
             }
         }
+    }
+
+    private fun requestRuntimePermissions() {
+        val perms = mutableListOf(
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            perms.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            perms.add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
+        ActivityCompat.requestPermissions(
+            this,
+            perms.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }.toTypedArray(),
+            1,
+        )
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        .setData(Uri.parse("package:$packageName")),
+                )
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun requestAntiTheftPermissions() {
+        val perms = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            perms.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+        ActivityCompat.requestPermissions(
+            this,
+            perms.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }.toTypedArray(),
+            2,
+        )
+    }
+
+    private fun readCrashLog(): String {
+        val f = File(filesDir, "last_crash.txt")
+        return if (f.exists()) f.readText().take(500) else ""
     }
 }

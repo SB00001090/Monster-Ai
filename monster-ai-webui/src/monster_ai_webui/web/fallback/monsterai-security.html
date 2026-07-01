@@ -120,28 +120,31 @@
 
     function renderApkBlock(el, m) {
       if (!el || !m) return;
-      const url = m.apk_url || '/downloads/MonsterCallGuard-v1.0.8-signed.apk';
-      const full = location.origin + url;
-      const qr = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' + encodeURIComponent(full);
+      const ver = m.app_version || '1.2.0';
+      const url = m.apk_url || 'https://github.com/Suckbob/monster-ai/releases/download/v' + ver + '/MonsterCallGuard-v' + ver + '-signed.apk';
+      const releases = m.releases_page || 'https://github.com/Suckbob/monster-ai/releases/latest';
       const sha = (m.apk_sha256 || '').slice(0, 16);
       el.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col gap-4">
           <div class="flex-1">
-            <h3 class="text-lg font-semibold">📱 MonsterCallGuard v${m.app_version || '1.0.8'}</h3>
-            <p class="text-sm text-gray-400 mt-1">香港來電反制 · 收數拒接 · 設備聯繫網絡鎖定</p>
+            <h3 class="text-lg font-semibold">📱 MonsterCallGuard v${ver}</h3>
+            <p class="text-xs text-gray-500">Developed by Suckbob | Monster AI Call Guard</p>
+            <p class="text-sm text-gray-400 mt-1">香港來電反制 · 收數拒接 · Cloudflare Tunnel 連線</p>
             <p class="text-xs text-gray-500 mt-2 font-mono">SHA256: ${sha}…</p>
             <p class="text-xs text-gray-500 mt-1">${m.changelog || ''}</p>
-            <a href="${url}" class="inline-block mt-3 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold">下載 APK</a>
+            <div class="flex flex-wrap gap-2 mt-3">
+              <a href="${url}" class="inline-block rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold" rel="noopener">下載 APK</a>
+              <a href="${releases}" class="inline-block rounded-full border border-blue-500 px-5 py-2 text-sm" target="_blank" rel="noopener">GitHub Releases</a>
+            </div>
             <details class="mt-3 text-xs text-gray-400"><summary class="cursor-pointer text-blue-400">側載安裝教學</summary>
               <ol class="mt-2 list-decimal list-inside space-y-1">
-                <li>比對 SHA256 後安裝</li>
+                <li>從 GitHub Releases 下載，比對 SHA256</li>
                 <li>設定 → 允許未知來源</li>
                 <li>設為預設來電篩選 App</li>
-                <li>連線家中 Monster AI（LAN / Tailscale :7860）</li>
+                <li>手動貼上 Cloudflare Tunnel URL（唔使 IP、唔用 QR）</li>
               </ol>
             </details>
           </div>
-          <div class="text-center"><img src="${qr}" width="120" height="120" alt="QR" loading="lazy" class="rounded bg-white p-1"/><p class="text-xs text-gray-500 mt-1">掃描下載</p></div>
         </div>`;
     }
 

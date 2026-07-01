@@ -1,0 +1,80 @@
+{
+  "name": "MonsterAI_CallGuard_TrustScore",
+  "description": "信任分數 + 匿名回報 + 品質過濾 — 無公開留言板",
+  "developer": "Suckbob | Monster AI",
+  "variables": {
+    "MONSTER_TUNNEL_URL": "https://xxx.trycloudflare.com",
+    "HF_SPAM_MODEL": "facebook/bart-large-mnli"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "inputs": ["number_hash", "category", "risk_score", "signals", "reporter_id"]
+    },
+    {
+      "id": "hf_classify",
+      "type": "hugging-face-inference",
+      "model": "{{HF_SPAM_MODEL}}",
+      "inputs": {
+        "text": "HK phone scam category: {{category}} signals: {{signals}}"
+      },
+      "note": "輕量 spam 分類 — 可換成自訓練模型"
+    },
+    {
+      "id": "trust_calc",
+      "type": "code",
+      "language": "python3",
+      "code": "trust = max(0, min(100, 100 - int(risk_score)))\nif hf_label == 'spam': trust = min(trust, 20)\noutput = {'trust_score': trust, 'quality_pass': trust >= 30}"
+    },
+    {
+      "id": "quality_gate",
+      "type": "if-else",
+      "condition": "{{trust_calc.quality_pass}} == true and {{risk_score}} >= 70"
+    },
+    {
+      "id": "submit_report",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/report",
+      "headers": {"Content-Type": "application/json"},
+      "body": {
+        "number": "{{number_hash}}",
+        "category": "{{category}}",
+        "score": "{{risk_score}}",
+        "signals": "{{signals}}",
+        "reporter_id": "{{reporter_id}}",
+        "trust_score": "{{trust_calc.trust_score}}"
+      }
+    },
+    {
+      "id": "consensus_poll",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/consensus"
+    },
+    {
+      "id": "adopted_check",
+      "type": "if-else",
+      "condition": "{{submit_report.consensus.adopted}} == true"
+    },
+    {
+      "id": "sync_threat_db",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/callguard/threat-db"
+    },
+    {
+      "id": "sentry_on_fail",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{SENTRY_INGEST_URL}}",
+      "note": "僅在 quality_gate 失敗或 HTTP 錯誤時觸發"
+    }
+  ],
+  "privacy": {
+    "public_comment_board": false,
+    "stored_fields": ["number_hash", "category", "score", "signals", "reporter_id"],
+    "never_stored": ["phone_plaintext", "user_message", "call_recording"]
+  }
+}

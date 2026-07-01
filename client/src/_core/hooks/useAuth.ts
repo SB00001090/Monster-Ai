@@ -15,8 +15,11 @@ export function useAuth(options?: UseAuthOptions) {
   const { isGuest } = useGuest();
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: false,
+    retry: 1,
+    retryDelay: 800,
     refetchOnWindowFocus: false,
+    staleTime: 30_000,
+    gcTime: 60_000,
     enabled: !isGuest, // Don't fetch if in guest mode
   });
 

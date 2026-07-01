@@ -1,4 +1,4 @@
-"""MonsterGuard Discord bot — anti-scam + Monster AI chat bridge."""
+"""MonsterGuard Discord bot v2.0 — Developed by Suckbob | Monster AI Ecosystem."""
 from __future__ import annotations
 
 import asyncio
@@ -11,14 +11,17 @@ import discord
 from discord.ext import commands
 
 from monster_ai.config import Settings
+from monster_ai.modules.discord.constants import DEVELOPER_CREDIT, PRODUCT_NAME, VERSION
 from monster_ai.modules.discord.guard.actions import ActionEngine
 from monster_ai.modules.discord.guard.guild_config import GuildConfigStore
 from monster_ai.modules.discord.guard.pipeline import DetectionPipeline
 from monster_ai.modules.discord.guard.privacy import PrivacySafeLogger
+from monster_ai.modules.discord.guard.ui.embeds import neon_footer
 
 if TYPE_CHECKING:
     from monster_ai.core.self_repair import SelfRepairEngine
     from monster_ai.modules.chat.service import ChatService
+    from monster_ai.modules.discord.bot import DiscordService
     from monster_ai.modules.roleplay.service import RoleplayService
 
 logger = logging.getLogger(__name__)
@@ -32,11 +35,12 @@ class MonsterGuardBot(commands.Bot):
         repair: SelfRepairEngine | None = None,
         chat: ChatService | None = None,
         roleplay: RoleplayService | None = None,
+        discord_service: DiscordService | None = None,
     ) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
         intents.guilds = True
-        # members intent 可選；未開啟時仍可用 message.author.created_at
+        intents.members = True
 
         super().__init__(command_prefix="!", intents=intents)
 
@@ -45,6 +49,7 @@ class MonsterGuardBot(commands.Bot):
         self.repair = repair
         self.chat = chat
         self.roleplay = roleplay
+        self.discord_service = discord_service
 
         data_dir = Path(self.guard_settings.data_dir)
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -57,6 +62,7 @@ class MonsterGuardBot(commands.Bot):
         )
         self.actions = ActionEngine(self.privacy_log)
         self._stats: dict[str, int] = {"scanned": 0, "blocked": 0, "warned": 0}
+        self._guild_cmds_cleared = False
 
     async def setup_hook(self) -> None:
         await self.guild_store.init()
@@ -66,36 +72,70 @@ class MonsterGuardBot(commands.Bot):
         await self._load_cogs()
         try:
             await self.tree.sync()
-            logger.info("MonsterGuard slash commands synced")
+            logger.info("MonsterGuard v%s slash commands synced", VERSION)
         except Exception as exc:  # noqa: BLE001
             logger.warning("Slash sync failed (set MONSTER_DISCORD_APP_ID?): %s", exc)
 
     async def _load_cogs(self) -> None:
         from monster_ai.modules.discord.guard.cogs import (
             admin,
+            ai_commands,
+            callguard,
             chat_bridge,
+            commercial,
             education,
             features,
+            intro,
+            learning,
+            monitor,
             report,
             setup_wizard,
         )
 
         await setup_wizard.setup(self)
         await admin.setup(self)
+        await intro.setup(self)
+        await monitor.setup(self)
+        await callguard.setup(self)
+        await ai_commands.setup(self)
         await chat_bridge.setup(self)
+        await learning.setup(self)
         await education.setup(self)
         await features.setup(self)
         await report.setup(self)
+        if self.guard_settings.trial_reminder_enabled:
+            await commercial.setup(self)
 
     async def on_ready(self) -> None:
-        logger.info("MonsterGuard logged in as %s (%s guilds)", self.user, len(self.guilds))
+        logger.info(
+            "%s v%s logged in as %s (%s guilds) — %s",
+            PRODUCT_NAME,
+            VERSION,
+            self.user,
+            len(self.guilds),
+            DEVELOPER_CREDIT,
+        )
+        if self.discord_service:
+            self.discord_service._reconnect.on_connect_success()  # noqa: SLF001
         try:
-            for guild in self.guilds:
-                self.tree.copy_global_to(guild=guild)
-                await self.tree.sync(guild=guild)
-            logger.info("Guild slash commands synced")
+            await self.change_presence(
+                status=discord.Status.online,
+                activity=discord.Activity(
+                    type=discord.ActivityType.watching,
+                    name=f"{PRODUCT_NAME} v{VERSION} · /intro /status /防盜",
+                ),
+            )
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Guild slash sync failed: %s", exc)
+            logger.debug("Presence update skipped: %s", exc)
+        if not self._guild_cmds_cleared:
+            self._guild_cmds_cleared = True
+            try:
+                for guild in self.guilds:
+                    self.tree.clear_commands(guild=guild)
+                    await self.tree.sync(guild=guild)
+                logger.info("Cleared guild-scoped slash duplicates (global commands only)")
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Guild command cleanup failed: %s", exc)
 
     async def on_app_command_error(
         self, interaction: discord.Interaction, error: Exception
@@ -110,6 +150,29 @@ class MonsterGuardBot(commands.Bot):
         except discord.HTTPException:
             pass
 
+    async def on_member_join(self, member: discord.Member) -> None:
+        if member.bot or not self.guard_settings.welcome_intro_enabled:
+            return
+        try:
+            from monster_ai.modules.discord.guard.cogs.intro import send_welcome_intro
+
+            channel: discord.abc.Messageable | None = None
+            cfg = await self.guild_store.get(member.guild.id)
+            if cfg.mod_channel_id:
+                channel = member.guild.get_channel(cfg.mod_channel_id)
+            if channel is None and member.guild.system_channel:
+                channel = member.guild.system_channel
+            notify_id = self.guard_settings.notify_channel_id
+            if channel is None and notify_id:
+                channel = member.guild.get_channel(notify_id)
+            if channel is None:
+                return
+            await send_welcome_intro(channel, self, member)
+        except discord.Forbidden:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Welcome intro failed: %s", exc)
+
     async def on_guild_join(self, guild: discord.Guild) -> None:
         try:
             if guild.owner:
@@ -117,18 +180,16 @@ class MonsterGuardBot(commands.Bot):
 
                 intercept_preview = "、".join(c.title for c in INTERCEPT_CATEGORIES[:4]) + " 等"
                 embed = discord.Embed(
-                    title="MonsterGuard 已加入伺服器",
+                    title=f"{PRODUCT_NAME} v{VERSION} 已加入伺服器",
                     description=(
-                        "感謝邀請 MonsterGuard！請在任意頻道執行 **`/guard setup`** 完成設定精靈。\n\n"
+                        "感謝邀請 MonsterGuard！請執行 **`/guard setup`** 完成設定。\n\n"
                         f"**可攔截：**{intercept_preview}\n"
-                        "輸入 **`/guard features`** 查看完整攔截清單。\n\n"
-                        "分享邀請連結給其他伺服器：\n"
-                        "https://discord.com/oauth2/authorize?client_id=1519991508172804096"
-                        "&permissions=1099511723008&scope=bot%20applications.commands\n\n"
-                        "也可使用 **`/chat`** 與本地 Monster AI 對話（若已啟用 Chat Bridge）。"
+                        "**指令：** `/intro` `/monsterai` `/status` `/ai` `/callguard` `/防盜`\n\n"
+                        "也可使用 **`/chat`** 與本地 Monster AI 對話。"
                     ),
-                    color=0x6EE7B7,
+                    color=0x00F5FF,
                 )
+                embed.set_footer(text=neon_footer())
                 await guild.owner.send(embed=embed)
         except discord.Forbidden:
             pass
@@ -187,9 +248,10 @@ class MonsterGuardBot(commands.Bot):
             "scanned": self._stats["scanned"],
             "blocked": self._stats["blocked"],
             "warned": self._stats["warned"],
-            "blocked_24h": 0,  # filled async in status command
+            "blocked_24h": 0,
             "guard_enabled": self.guard_settings.enabled,
             "chat_bridge": self.guard_settings.chat_bridge_enabled,
             "ai_backend": self.guard_settings.ai_backend,
             "mode": self.guard_settings.mode,
+            "version": VERSION,
         }

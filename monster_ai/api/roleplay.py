@@ -23,6 +23,13 @@ class MessageRequest(BaseModel):
     message: str
     character_id: str | None = None
     user_id: str = "default"
+    web_search: bool | None = None
+
+
+class LearnLoreRequest(BaseModel):
+    query: str
+    character_id: str | None = None
+    force_refresh: bool = False
 
 
 class SessionFeedbackRequest(BaseModel):
@@ -31,6 +38,8 @@ class SessionFeedbackRequest(BaseModel):
     thumbs: str | None = None
     comment: str = ""
     message: str = ""
+    last_user_message: str = ""
+    regenerate: bool = False
 
 
 class ImportCharacterRequest(BaseModel):
@@ -158,10 +167,43 @@ async def send_message(session_id: str, body: MessageRequest, request: Request) 
     _check_rate(request)
     try:
         return await request.app.state.roleplay.send_message(
-            session_id, body.message, character_id=body.character_id
+            session_id,
+            body.message,
+            character_id=body.character_id,
+            user_id=body.user_id,
+            web_search=body.web_search,
         )
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
+
+
+@router.post("/sessions/{session_id}/learn-lore")
+async def session_learn_lore(
+    session_id: str, body: LearnLoreRequest, request: Request
+) -> dict:
+    crimeguard = getattr(request.app.state, "crimeguard", None)
+    if crimeguard is not None and crimeguard.state.network_locked:
+        raise HTTPException(403, "Network locked by CrimeGuard")
+    return await request.app.state.roleplay.learn_lore(
+        body.query,
+        character_id=body.character_id,
+        session_id=session_id,
+        force_refresh=body.force_refresh,
+    )
+
+
+@router.post("/characters/{character_id}/learn-lore")
+async def character_learn_lore(
+    character_id: str, body: LearnLoreRequest, request: Request
+) -> dict:
+    crimeguard = getattr(request.app.state, "crimeguard", None)
+    if crimeguard is not None and crimeguard.state.network_locked:
+        raise HTTPException(403, "Network locked by CrimeGuard")
+    return await request.app.state.roleplay.learn_lore(
+        body.query,
+        character_id=character_id,
+        force_refresh=body.force_refresh,
+    )
 
 
 @router.post("/sessions/{session_id}/feedback")
@@ -169,6 +211,15 @@ async def session_feedback(
     session_id: str, body: SessionFeedbackRequest, request: Request
 ) -> dict:
     learning = request.app.state.learning
+    if body.regenerate or body.thumbs == "down":
+        return await learning.record_feedback_and_regenerate(
+            user_id=body.user_id,
+            session_id=session_id,
+            thumbs=body.thumbs,
+            comment=body.comment,
+            message=body.message,
+            last_user_message=body.last_user_message,
+        )
     return learning.record_feedback(
         user_id=body.user_id,
         session_id=session_id,

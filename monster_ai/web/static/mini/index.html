@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Monster AI v1.0</title>
+  <link rel="stylesheet" href="mini.css" />
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div id="disclaimerModal" class="modal">
+    <div class="modal-box">
+      <h3>免責聲明與隱私</h3>
+      <pre id="disclaimerText" class="disclaimer-pre"></pre>
+      <label class="check"><input type="checkbox" id="agreeCheck" /> 我已閱讀並同意（僅限合法參考與同人用途）</label>
+      <button id="btnAgree" class="primary" disabled>進入 Mini Monster AI</button>
+    </div>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <span class="neon">MINI MONSTER AI</span>
+      <span class="ver">v1.0 · Multimodal</span>
+    </div>
+    <div class="credit">Developed by Suckbob</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="r18">R18+ 圖像</button>
+    <button class="tab" data-tab="likeness">偶像同人 Likeness</button>
+    <button class="tab" data-tab="multimodal">圖+音多模態</button>
+    <button class="tab" data-tab="voice">語音克隆</button>
+    <button class="tab" data-tab="network">網絡學習</button>
+  </nav>
+
+  <main class="grid">
+    <section class="panel tab-panel active" id="panel-r18">
+      <h2>R18+ 圖像生成</h2>
+      <textarea id="prompt" rows="4" placeholder="多語言提示詞…"></textarea>
+      <div class="row">
+        <label>模板<select id="template">
+          <option value="stable" selected>Stable（少爛圖）</option>
+          <option value="fast">Fast</option>
+          <option value="hq">HQ</option>
+          <option value="portrait">Portrait</option>
+          <option value="fullbody">Full Body</option>
+        </select></label>
+        <label>語言<select id="locale">
+          <option value="zh-TW">繁體</option><option value="zh-HK">粵語</option>
+          <option value="zh-CN">简体</option><option value="ja">日本語</option><option value="en">EN</option>
+        </select></label>
+      </div>
+      <div class="actions">
+        <button id="btnOptimize" class="ghost">優化提示詞</button>
+        <button id="btnGenerate" class="primary">生成</button>
+      </div>
+      <pre id="optimized" class="log"></pre>
+    </section>
+
+    <section class="panel tab-panel" id="panel-likeness">
+      <h2>偶像同人 · 極度相似 Likeness</h2>
+      <p class="hint">上傳<strong>您有權使用</strong>的參考臉圖。建議安裝 ComfyUI-IPAdapter-plus。</p>
+      <label>角色名稱 <input id="refName" type="text" placeholder="my_character" /></label>
+      <label>參考臉圖 <input id="refImage" type="file" accept="image/*" /></label>
+      <label>參考語音（可選）<input id="refVoice" type="file" accept="audio/*" /></label>
+      <button id="btnUploadRef" class="ghost">上傳參考</button>
+      <label>已選參考 <select id="referenceId"><option value="">— 先上傳 —</option></select></label>
+      <textarea id="likenessPrompt" rows="3" placeholder="R18+ 場景描述…"></textarea>
+      <button id="btnLikeness" class="primary">生成極度相似</button>
+    </section>
+
+    <section class="panel tab-panel" id="panel-multimodal">
+      <h2>多模態 · 圖像 + 語音同步</h2>
+      <select id="mmRef"><option value="">選擇參考</option></select>
+      <textarea id="mmPrompt" rows="3" placeholder="畫面 + 情境…"></textarea>
+      <input id="mmVoiceText" type="text" placeholder="語音台詞（可選）" />
+      <button id="btnMultimodal" class="primary">生成圖+音</button>
+      <audio id="audioPreview" controls class="hidden"></audio>
+    </section>
+
+    <section class="panel tab-panel" id="panel-voice">
+      <h2>語音克隆 XTTS</h2>
+      <select id="voiceRef"><option value="">選擇參考</option></select>
+      <textarea id="voiceText" rows="3" placeholder="要合成的台詞…"></textarea>
+      <button id="btnVoice" class="primary">克隆語音</button>
+      <audio id="voicePreview" controls class="hidden"></audio>
+    </section>
+
+    <section class="panel tab-panel" id="panel-network">
+      <h2>網絡學習（可選）</h2>
+      <p class="hint">匿名成功率 / 相似度反饋，不含原圖原音。</p>
+      <button id="btnConsent" class="ghost">啟用同意</button>
+      <button id="btnRevoke" class="ghost">撤銷</button>
+      <pre id="network" class="log"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>輸出 / 98% 追蹤</h2>
+      <div id="status" class="status">載入中…</div>
+      <img id="preview" alt="preview" class="preview hidden" />
+      <label>相似度評分 (0–1)
+        <input id="simScore" type="range" min="0" max="100" value="95" />
+        <span id="simLabel">0.95</span>
+      </label>
+      <div class="feedback">
+        <button id="btnGood" class="good">成功 👍</button>
+        <button id="btnBad" class="bad">失敗 👎</button>
+      </div>
+    </section>
+  </main>
+  <script src="mini.js"></script>
+</body>
+</html>

@@ -31,6 +31,7 @@ class ModuleRegistry:
             "discord": m.discord.enabled,
             "tts": m.tts.enabled,
             "training": m.training.enabled,
+            "mini": m.mini.enabled,
         }
         return [mod for name, mod in self._modules.items() if flags.get(name, False)]
 

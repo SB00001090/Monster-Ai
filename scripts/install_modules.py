@@ -38,22 +38,11 @@ def pick_profile(vram_mb: int | None) -> str:
 
 
 def install_piper_voice(voice: str, dest: Path) -> None:
-    dest.mkdir(parents=True, exist_ok=True)
-    onnx = dest / f"{voice}.onnx"
-    if onnx.exists():
-        print(f"Piper voice exists: {onnx}")
-        return
-    url = f"https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/{voice}.onnx"
-    json_url = url + ".json"
-    try:
-        import httpx
-        for u, name in ((url, f"{voice}.onnx"), (json_url, f"{voice}.onnx.json")):
-            r = httpx.get(u, follow_redirects=True, timeout=120)
-            if r.status_code == 200:
-                (dest / name).write_bytes(r.content)
-                print(f"Downloaded {name}")
-    except Exception as exc:
-        print(f"Piper download skipped: {exc}")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from install_voice_pack import install_piper_voice as _install
+
+    if not _install(voice, dest):
+        print(f"Piper voice download failed or skipped: {voice}")
 
 
 def main() -> int:
@@ -94,8 +83,10 @@ def main() -> int:
         ])
         run(pip + ["-r", str(ROOT / "requirements-train.txt"), "-c", str(ROOT / "constraints.txt")])
 
-    voice = "en_US-lessac-medium"
-    install_piper_voice(voice, ROOT / "data" / "models" / "piper")
+    voices = ["en_US-lessac-medium", "zh_CN-huayan-medium"]
+    for voice in voices:
+        install_piper_voice(voice, ROOT / "data" / "models" / "piper")
+    voice = voices[-1]
 
     sys.path.insert(0, str(Path(__file__).parent))
     from detect_comfyui import find_comfyui

@@ -34,6 +34,7 @@ import { Streamdown } from "streamdown";
 import { useTranslation } from "react-i18next";
 import { useTTS } from "@/hooks/useTTS";
 import { APP_LOGO_SRC } from "@/const";
+import SignInPrompt from "@/components/SignInPrompt";
 
 
 interface Message {
@@ -597,11 +598,7 @@ export default function ChatPage() {
   );
 
   if (!canChat) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">{t("chat.signInRequired")}</p>
-      </div>
-    );
+    return <SignInPrompt />;
   }
 
   return (

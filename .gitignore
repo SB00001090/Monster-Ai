@@ -46,10 +46,21 @@ config.yaml
 
 # Monster AI runtime data
 .monster-data/
+agent-tools/
+Screenshot_*.jpg
+Screenshot_*.png
+good and bad/
 data/chats/
 data/logs/
 data/models/
 data/guard/
+data/guardian/
+data/ecosystem/
+data/learning/
+data/mini/
+data/callguard/tunnel_url.txt
+data/callguard/usb_driver/
+data/outputs/mini/
 data/monsterlock/
 data/monsterlock_test/
 data/training/

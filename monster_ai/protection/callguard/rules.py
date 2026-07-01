@@ -18,6 +18,7 @@ DEFAULT_THREAT_DB: dict[str, Any] = {
         "警察", "入境", "海關", "稅務", "投資", "加密貨幣", "中獎",
     ],
     "known_scam_numbers": [],
+    "hash_blocklist": [],
     "block_threshold": 70,
     "reject_threshold": 85,
 }
@@ -33,8 +34,10 @@ class CallScoreResult:
     summary: str = ""
 
     def to_dict(self) -> dict[str, Any]:
+        trust = max(0, min(100, 100 - self.score))
         return {
             "score": self.score,
+            "trust_score": trust,
             "blocked": self.blocked,
             "reject": self.reject,
             "category": self.category,
@@ -73,6 +76,15 @@ def score_call(
     block_t = int(rules.get("block_threshold", 70))
     reject_t = int(rules.get("reject_threshold", 85))
     max_score = 0
+
+    from monster_ai.protection.callguard.report import hash_number
+
+    nh = hash_number(number)
+    for blocked_hash in rules.get("hash_blocklist", []):
+        if nh == blocked_hash:
+            result.signals.append("consensus:hash_block")
+            max_score = max(max_score, 92)
+            result.category = "community_verified"
 
     for known in rules.get("known_scam_numbers", []):
         if num.endswith(str(known)) or num == str(known):

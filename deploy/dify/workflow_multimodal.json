@@ -1,0 +1,53 @@
+{
+  "name": "MonsterAI_Multimodal_Likeness",
+  "description": "Likeness image + optional voice — 70% quality gate. Import into Dify Studio.",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "variables": ["prompt", "reference_id", "voice_text", "locale", "min_quality"]
+    },
+    {
+      "id": "likeness",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/mini/generate/likeness",
+      "body": {
+        "prompt": "{{prompt}}",
+        "reference_id": "{{reference_id}}",
+        "template_id": "idol_likeness",
+        "locale": "{{locale}}"
+      }
+    },
+    {
+      "id": "quality_gate",
+      "type": "if-else",
+      "condition": "{{likeness.quality.score}} >= {{min_quality}}"
+    },
+    {
+      "id": "voice",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/mini/generate/multimodal",
+      "body": {
+        "prompt": "{{prompt}}",
+        "reference_id": "{{reference_id}}",
+        "voice_text": "{{voice_text}}",
+        "locale": "{{locale}}"
+      }
+    },
+    {
+      "id": "learn_high",
+      "type": "if-else",
+      "condition": "{{likeness.quality.score}} >= 0.85"
+    },
+    {
+      "id": "feedback_up",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_API_URL}}/api/learning/image/feedback",
+      "body": { "thumbs": "up", "prompt": "{{prompt}}", "tier": "high" }
+    }
+  ],
+  "notes": "Requires user-owned reference_id. min_quality default 0.70. High tier 0.85 for training."
+}

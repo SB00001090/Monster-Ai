@@ -100,6 +100,12 @@
   --neon-purple: #8b5cf6;
   --cyber-bg: #0a0a0f;
   --cyber-card: #16161f;
+  --neon-cyan: #00f5ff;
+  --neon-pink: #ff00aa;
+  --neon-green: #00ff9d;
+  --neon-muted: #7a8fa8;
+  --neon-border: #1a2a4a;
+  --neon-panel: rgba(12, 16, 36, 0.85);
 }
 
 @layer base {
@@ -120,6 +126,26 @@
   }
   .neon-glow {
     box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+  }
+  .neon-text-glow {
+    text-shadow: 0 0 12px var(--neon-cyan), 0 0 24px rgba(0, 245, 255, 0.35);
+  }
+  .neon-btn-primary {
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 170, 0.2));
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+  }
+  .monster-neon-page {
+    background: radial-gradient(ellipse at 20% 0%, #10183a 0%, #05060f 55%);
+    min-height: 100%;
+  }
+  .scanlines {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 245, 255, 0.02) 3px
+    );
   }
 }
 

@@ -4,27 +4,39 @@ import android.content.Context
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
 object SyncScheduler {
-    private const val WORK_NAME = "callguard_threat_sync"
+    private const val THREAT_SYNC = "callguard_threat_sync"
+    private const val HEALTH_PROBE = "callguard_tunnel_health"
 
     fun schedule(context: Context) {
-        val constraints = Constraints.Builder()
+        val network = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-        val request = PeriodicWorkRequestBuilder<ThreatDbSyncWorker>(6, TimeUnit.HOURS)
-            .setConstraints(constraints)
+
+        val threat = PeriodicWorkRequestBuilder<ThreatDbSyncWorker>(6, TimeUnit.HOURS)
+            .setConstraints(network)
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WORK_NAME,
+            THREAT_SYNC,
             ExistingPeriodicWorkPolicy.KEEP,
-            request,
+            threat,
         )
-        // 立即執行一次
-        val once = androidx.work.OneTimeWorkRequestBuilder<ThreatDbSyncWorker>().build()
-        WorkManager.getInstance(context).enqueue(once)
+        WorkManager.getInstance(context).enqueue(
+            OneTimeWorkRequestBuilder<ThreatDbSyncWorker>().setConstraints(network).build(),
+        )
+
+        val health = PeriodicWorkRequestBuilder<ConnectionHealthWorker>(30, TimeUnit.MINUTES)
+            .setConstraints(network)
+            .build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            HEALTH_PROBE,
+            ExistingPeriodicWorkPolicy.KEEP,
+            health,
+        )
     }
 }

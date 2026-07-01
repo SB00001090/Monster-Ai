@@ -31,6 +31,8 @@ async def chat_ws(websocket: WebSocket) -> None:
             user_msg = data.get("message", "")
             session_id = data.get("session_id")
             character_id = data.get("character_id")
+            user_id = data.get("user_id") or "default"
+            web_search = data.get("web_search")
 
             crimeguard = getattr(websocket.app.state, "crimeguard", None)
             if crimeguard is not None and user_msg:
@@ -46,14 +48,22 @@ async def chat_ws(websocket: WebSocket) -> None:
             if session_id and websocket.app.state.settings.modules.roleplay.enabled:
                 roleplay = websocket.app.state.roleplay
                 result = await roleplay.send_message(
-                    session_id, user_msg, character_id=character_id
+                    session_id,
+                    user_msg,
+                    character_id=character_id,
+                    user_id=user_id,
+                    web_search=web_search,
                 )
             else:
                 system = data.get("system")
                 persona_mode = data.get("persona_mode")
                 chat = websocket.app.state.chat
                 result = await chat.send(
-                    user_msg, system=system, persona_mode=persona_mode
+                    user_msg,
+                    system=system,
+                    persona_mode=persona_mode,
+                    user_id=user_id,
+                    session_id=session_id or "chat",
                 )
             await websocket.send_json(result)
     except WebSocketDisconnect:

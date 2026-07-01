@@ -348,7 +348,43 @@ def detect_vram_gb() -> float | None:
     return None
 
 
-def load_quality_records(data_dir: Path) -> list[dict]:
+def _hardware_fingerprint(root: Path) -> str:
+    binding = root / "data" / "monsterlock" / "hardware.binding"
+    if binding.is_file():
+        try:
+            data = json.loads(binding.read_text(encoding="utf-8"))
+            fp = data.get("fingerprint", "")
+            if fp:
+                return str(fp)
+        except (OSError, json.JSONDecodeError):
+            pass
+    return "guardian-local-fallback"
+
+
+def load_encrypted_vault_records(root: Path) -> list[dict]:
+    """Load good/bad metadata from Guardian encrypted training vault."""
+    sys.path.insert(0, str(root))
+    try:
+        from monster_ai.config import load_settings
+        from monster_ai.modules.guardian.key_manager import TrainingKeyManager
+        from monster_ai.modules.guardian.training_vault import TrainingVault
+    except ImportError:
+        return []
+
+    settings = load_settings()
+    if not settings.guardian.training_encryption_enabled:
+        return []
+    hw = _hardware_fingerprint(root)
+    km = TrainingKeyManager(settings.guardian, root, hardware_fingerprint=hw)
+    try:
+        km.unlock(None)
+    except ValueError:
+        return []
+    vault = TrainingVault(Path(settings.guardian.data_dir), km)
+    return vault.quality_log_records()
+
+
+def load_quality_records(data_dir: Path, *, root: Path | None = None) -> list[dict]:
     records: list[dict] = []
     log_path = data_dir / "quality_log.jsonl"
     if log_path.exists():
@@ -362,6 +398,8 @@ def load_quality_records(data_dir: Path) -> list[dict]:
             continue
         for meta_path in folder.glob("*.json"):
             records.append(json.loads(meta_path.read_text(encoding="utf-8")))
+    if not records and root is not None:
+        records = load_encrypted_vault_records(root)
     seen: set[str] = set()
     unique: list[dict] = []
     for rec in records:
@@ -373,13 +411,38 @@ def load_quality_records(data_dir: Path) -> list[dict]:
     return unique
 
 
-def build_caption_manifest(data_dir: Path, out_dir: Path) -> tuple[int, int]:
+def _vault_image_bytes(root: Path, asset_id: str) -> bytes | None:
+    import base64
+
+    sys.path.insert(0, str(root))
+    try:
+        from monster_ai.config import load_settings
+        from monster_ai.modules.guardian.key_manager import TrainingKeyManager
+        from monster_ai.modules.guardian.training_vault import TrainingVault
+    except ImportError:
+        return None
+    settings = load_settings()
+    hw = _hardware_fingerprint(root)
+    km = TrainingKeyManager(settings.guardian, root, hardware_fingerprint=hw)
+    try:
+        km.unlock(None)
+    except ValueError:
+        return None
+    vault = TrainingVault(Path(settings.guardian.data_dir), km)
+    blob = vault.decrypt_asset_to_memory(asset_id)
+    if not blob or not blob.get("image_b64"):
+        return None
+    return base64.b64decode(str(blob["image_b64"]))
+
+
+def build_caption_manifest(data_dir: Path, out_dir: Path, *, root: Path | None = None) -> tuple[int, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
     images_dir = out_dir / "images"
     images_dir.mkdir(exist_ok=True)
     good_n = bad_n = 0
+    project_root = root or ROOT
 
-    for rec in load_quality_records(data_dir):
+    for rec in load_quality_records(data_dir, root=project_root):
         label = rec.get("label", "good")
         prompt = rec.get("prompt", "high quality image")
         negative = rec.get("negative", "")
@@ -393,12 +456,20 @@ def build_caption_manifest(data_dir: Path, out_dir: Path) -> tuple[int, int]:
         if extra_src:
             src_candidates.insert(0, Path(extra_src))
         src = next((p for p in src_candidates if p.exists()), None)
-        if src is None:
-            continue
 
         dest = images_dir / img_name
-        if not dest.exists():
-            dest.write_bytes(src.read_bytes())
+        if src is not None:
+            if not dest.exists():
+                dest.write_bytes(src.read_bytes())
+        else:
+            asset_id = str(rec.get("id", ""))
+            if not asset_id:
+                continue
+            raw = _vault_image_bytes(project_root, asset_id)
+            if raw is None:
+                continue
+            if not dest.exists():
+                dest.write_bytes(raw)
 
         if label == "good":
             caption = prompt
@@ -638,7 +709,7 @@ def main() -> int:
         print(f"Imported from outputs: {imp_good} good, {imp_bad} bad")
 
     manifest_dir = ROOT / "data" / "training" / "quality_manifest"
-    good_n, bad_n = build_caption_manifest(args.data_dir, manifest_dir)
+    good_n, bad_n = build_caption_manifest(args.data_dir, manifest_dir, root=ROOT)
     total = good_n + bad_n
     print(f"Manifest: {good_n} good, {bad_n} bad samples ({total} total) -> {manifest_dir}")
 

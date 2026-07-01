@@ -1,4 +1,4 @@
-"""Expose Monster AI (127.0.0.1:7860) on all LAN + Tailscale IPs for MonsterCallGuard."""
+"""[LEGACY/DEV] LAN proxy for Monster AI — Call Guard v1.2+ uses Cloudflare Tunnel only."""
 from __future__ import annotations
 
 import http.server
@@ -24,7 +24,7 @@ def discover_bind_addrs() -> list[str]:
         for line in out.splitlines():
             if "IPv4" in line and ":" in line:
                 ip = line.split(":")[-1].strip()
-                if ip.startswith(("192.168.", "10.")) or ip.startswith("100."):
+                if ip.startswith(("192.168.", "10.")):
                     addrs.add(ip)
     except Exception:
         pass

@@ -2,6 +2,8 @@
 
 A **local-first, open-source AI platform** — chat, roleplay, image generation, and more, running entirely on your machine.
 
+> **Monster Guardian AI** — privacy-first security shell with E2E cloud sync (Google/GitHub), OC anti-plagiarism, auto error learning, and Grok-supervised evolution. See [`deploy/guardian/ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md). Developed by Suckbob | Monster Guardian AI.
+
 - Self-healing with automatic LLM fallback
 - Web UI (HTTP + WebSocket)
 - Modular architecture — enable features as you need them
@@ -31,6 +33,26 @@ A **local-first, open-source AI platform** — chat, roleplay, image generation,
 | Full-auto code repair (watchdog + git) | Working |
 | MonsterGuard Discord bot (anti-scam) | Working |
 | Anti-collapse LoRA training (`train_image_quality_4060.py`) | Working |
+| **Monster Guardian AI** (E2E sync, OC fingerprint, error learning) | Working |
+| Cloudflare Tunnel + USB APK install (no Tailscale / QR) | Working |
+| Google / GitHub OAuth cloud sync | Working |
+| Grok-supervised learning (`/api/guardian/learning/supervise`) | Working |
+
+## Monster Guardian AI
+
+| API | Purpose |
+|-----|---------|
+| `GET /api/guardian/status` | Platform health |
+| `POST /api/guardian/sync/upload` | E2E encrypted OC/chat upload |
+| `POST /api/guardian/sync/download` | Cross-device restore |
+| `POST /api/guardian/errors/report` | Auto error + fix suggestions |
+| `POST /api/guardian/oc/protect` | OC fingerprint + watermark |
+| `GET /api/guardian/connection` | Tunnel URL + USB APK info |
+| `GET /api/guardian/training/status` | Encrypted training vault status |
+| `POST /api/guardian/training/migrate` | Encrypt legacy plaintext good/bad images |
+| `GET /api/guardian/training/export` | E2E encrypted training bundle for cloud sync |
+
+Docs: [`deploy/guardian/ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](deploy/guardian/LAUNCH_CHECKLIST.md)
 
 ## Requirements
 

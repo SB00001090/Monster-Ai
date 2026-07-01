@@ -62,6 +62,7 @@ async def guard_status(request: Request) -> dict:
 
     base = {
         "guard_api": "ok",
+        "version": "2.1.0",
         "llm_backend": request.app.state.repair.state.active_backend,
         "primary_ok": request.app.state.repair.state.primary_ok,
     }
@@ -70,3 +71,19 @@ async def guard_status(request: Request) -> dict:
     else:
         base["bot"] = {"running": False, "message": "Discord bot not started"}
     return base
+
+
+@router.post("/restart")
+async def guard_restart(request: Request) -> dict:
+    discord_svc = request.app.state.modules._modules.get("discord")  # noqa: SLF001
+    if not discord_svc or not hasattr(discord_svc, "restart_guard"):
+        return {"ok": False, "error": "discord_service_unavailable"}
+    return await discord_svc.restart_guard()
+
+
+@router.get("/logs")
+async def guard_logs(limit: int = 50) -> dict:
+    from monster_ai.modules.discord.bot import DiscordService
+
+    safe_limit = max(1, min(limit, 200))
+    return {"logs": DiscordService.read_logs(limit=safe_limit)}

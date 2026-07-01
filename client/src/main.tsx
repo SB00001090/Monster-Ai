@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { reportError } from "./_core/autoErrorReporter";
+import { initSentry } from "./lib/sentry";
 import { getLoginUrl } from "./const";
 import "./index.css";
 import './i18n/config';
@@ -88,6 +89,8 @@ const trpcClient = trpc.createClient({
     }),
   ],
 });
+
+void initSentry();
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>

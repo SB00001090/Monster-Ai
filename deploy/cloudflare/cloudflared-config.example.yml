@@ -1,0 +1,18 @@
+# Cloudflare Tunnel — expose local Monster AI (7860) + optional Node API (3000)
+# Copy to ~/.cloudflared/config.yml or pass with: cloudflared tunnel --config deploy/cloudflare/cloudflared-config.yml run
+#
+# Setup:
+#   1. cloudflared tunnel login
+#   2. cloudflared tunnel create monster-ai
+#   3. Replace TUNNEL_ID and credentials-file path below
+#   4. cloudflared tunnel route dns monster-ai api.yourdomain.com
+
+tunnel: TUNNEL_ID
+credentials-file: C:\Users\YOU\.cloudflared\TUNNEL_ID.json
+
+ingress:
+  - hostname: api.yourdomain.com
+    service: http://127.0.0.1:7860
+  - hostname: node.yourdomain.com
+    service: http://127.0.0.1:3000
+  - service: http_status:404

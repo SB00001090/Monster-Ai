@@ -155,6 +155,7 @@ class ImageService:
         image_repair: ImageRepairEngine | None = None,
         prompt_refiner: PromptRefiner | None = None,
         history: GenerationHistory | None = None,
+        image_learner: Any | None = None,
     ) -> None:
         self.settings = settings
         self.repair = repair
@@ -167,6 +168,7 @@ class ImageService:
         )
         self.image_repair = image_repair or ImageRepairEngine(settings.modules.image.quality)
         self.prompt_refiner = prompt_refiner or PromptRefiner(repair)
+        self.image_learner = image_learner
         self.history = history
         self.url = settings.modules.image.comfyui_url.rstrip("/")
         self.client = ComfyUIClient(self.url)
@@ -260,6 +262,8 @@ class ImageService:
         quality_filter: bool | None = None,
         max_quality_retries: int | None = None,
         record_history: bool = True,
+        steps: int | None = None,
+        cfg: float | None = None,
     ) -> dict[str, Any]:
         if not self.settings.modules.image.enabled:
             raise RuntimeError("Image module disabled")
@@ -295,6 +299,8 @@ class ImageService:
         self.last_warning = warning
 
         styled_prompt = apply_style_to_prompt(prompt, style_preset)
+        if self.image_learner and self.image_learner.enabled:
+            styled_prompt = self.image_learner.enhance_prompt(styled_prompt)
         positive = (
             await self.prompt_enhancer.for_image(styled_prompt)
             if enhance_prompt
@@ -304,8 +310,8 @@ class ImageService:
         neg = apply_style_to_negative(neg, style_preset)
         w = width or style_preset.width or img_cfg.width
         h = height or style_preset.height or img_cfg.height
-        steps = img_cfg.steps
-        cfg = suggest_cfg(checkpoint, img_cfg.cfg)
+        steps = steps if steps is not None else img_cfg.steps
+        cfg = cfg if cfg is not None else suggest_cfg(checkpoint, img_cfg.cfg)
         active_ckpt = checkpoint
         active_lora = use_lora
         retry_lora_strength = strength
@@ -320,7 +326,11 @@ class ImageService:
             nonlocal active_ckpt, positive, neg, steps, cfg, w, h, active_lora, escalated
             n = gen_attempt_state["n"]
             use_steps = steps if n == 0 else max(12, steps - 4)
-            use_w, use_h = (w, h) if n == 0 else (min(w, 512), min(h, 512))
+            if n == 0:
+                use_w, use_h = w, h
+            else:
+                use_w = max(512, int(w * 0.85))
+                use_h = max(512, int(h * 0.85))
             use_lora_attempt = active_lora if n == 0 else active_lora
             use_strength = (
                 retry_lora_strength
@@ -372,6 +382,16 @@ class ImageService:
                     attempt=q_attempt,
                     extra={"lora": active_lora},
                 )
+                if self.image_learner:
+                    self.image_learner.ingest_generation(
+                        label="good",
+                        prompt=positive,
+                        negative=neg,
+                        report=report.to_dict(),
+                        checkpoint=active_ckpt,
+                        attempt=q_attempt,
+                        extra={"lora": active_lora},
+                    )
                 break
 
             self.image_repair.record_quality_fail()
@@ -385,6 +405,16 @@ class ImageService:
                 attempt=q_attempt,
                 extra={"lora": active_lora},
             )
+            if self.image_learner:
+                self.image_learner.ingest_generation(
+                    label="bad",
+                    prompt=positive,
+                    negative=neg,
+                    report=report.to_dict(),
+                    checkpoint=active_ckpt,
+                    attempt=q_attempt,
+                    extra={"lora": active_lora},
+                )
 
             if q_cfg.auto_lora_on_retry and not active_lora:
                 anti = resolve_lora(q_cfg.anti_collapse_lora, loras)
@@ -442,7 +472,14 @@ class ImageService:
 
             refined = await self.prompt_refiner.refine(positive, neg, report, q_attempt)
             positive = refined.positive
+            learned_neg = ""
+            if self.image_learner:
+                learned_neg = self.image_learner.negative_hints_for_issues(
+                    [i.value for i in report.issues]
+                )
             neg = refined.negative or build_negative(neg, report.issues)
+            if learned_neg:
+                neg = f"{neg}, {learned_neg}" if neg else learned_neg
             steps = max(12, min(40, steps + refined.steps_delta))
             cfg = max(4.0, min(12.0, cfg + refined.cfg_delta))
 
@@ -493,6 +530,12 @@ class ImageService:
                 "escalated": escalated,
             }
             if not last_report.passed:
+                if q_cfg.reject_bad_output and last_report.score < q_cfg.min_alive_score:
+                    issues = [i.value for i in last_report.issues]
+                    raise RuntimeError(
+                        f"quality_rejected:{'|'.join(issues) or 'low_score'} — "
+                        "建議降低解析度、換 checkpoint、或開啟 quality_filter 重試"
+                    )
                 result["warning"] = (
                     (result.get("warning") or "")
                     + " quality_filter_exhausted — best attempt returned"

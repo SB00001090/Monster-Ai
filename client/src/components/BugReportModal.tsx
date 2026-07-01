@@ -1,11 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+const JAM_TEAM_ID = import.meta.env.VITE_JAM_TEAM_ID?.trim();
+
+function loadJamRecorder(): void {
+  if (!JAM_TEAM_ID || typeof document === 'undefined') return;
+  if (document.querySelector('script[data-jam-recorder]')) return;
+  const s = document.createElement('script');
+  s.src = 'https://js.jam.dev/recorder.js';
+  s.async = true;
+  s.dataset.jamRecorder = '1';
+  s.dataset.jamTeamId = JAM_TEAM_ID;
+  document.head.appendChild(s);
+}
 
 interface BugReportModalProps {
   isOpen: boolean;
@@ -14,6 +27,9 @@ interface BugReportModalProps {
 
 export default function BugReportModal({ isOpen, onClose }: BugReportModalProps) {
   const { t } = useTranslation();
+  useEffect(() => {
+    if (isOpen) loadJamRecorder();
+  }, [isOpen]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [severity, setSeverity] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
@@ -103,6 +119,13 @@ export default function BugReportModal({ isOpen, onClose }: BugReportModalProps)
               <option value="critical">{t('bugReport.severity.critical')}</option>
             </select>
           </div>
+
+          {JAM_TEAM_ID && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Video className="w-3 h-3" />
+              可使用 Jam 錄影回報 — 點右下角 Jam 浮動按鈕
+            </p>
+          )}
 
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

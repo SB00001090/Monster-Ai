@@ -1,5 +1,7 @@
 package ai.monster.callguard
 
+import ai.monster.callguard.antitheft.AntiTheftForegroundService
+import ai.monster.callguard.billing.TrialManager
 import ai.monster.callguard.service.CallGuardForegroundService
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,6 +14,12 @@ class BootReceiver : BroadcastReceiver() {
             if (prefs.getBoolean("protection_enabled", false)) {
                 try {
                     CallGuardForegroundService.start(context)
+                } catch (_: Exception) {
+                }
+            }
+            if (prefs.getBoolean("antitheft_enabled", false) && TrialManager(context).hasPremiumAccess()) {
+                try {
+                    AntiTheftForegroundService.start(context)
                 } catch (_: Exception) {
                 }
             }

@@ -17,13 +17,17 @@ class RemoteAnalyzer(
         val token = CredentialBridge.getToken(context)
         val remote = client.analyzeRemote(number, displayName, token) ?: return localScore
         val score = remote.optInt("score", localScore.score)
+        val trust = remote.optInt("trust_score", maxOf(0, 100 - score))
         val reject = remote.optBoolean("reject", score >= 85)
         val category = remote.optString("category", localScore.category)
+        val signals = localScore.signals.toMutableList()
+        signals.add("remote:monster_ai")
+        if (trust < 30) signals.add("trust:low")
         return CallScore(
             score = score,
             reject = reject,
             category = category,
-            signals = localScore.signals + listOf("remote:monster_ai"),
+            signals = signals,
         )
     }
 }

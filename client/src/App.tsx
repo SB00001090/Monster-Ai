@@ -21,6 +21,11 @@ import MusicPage from "./pages/MusicPage";
 import { F2FVerificationPage } from "./pages/F2FVerificationPage";
 import { TextToImagePage } from "./pages/TextToImagePage";
 import { VideoGenerationPage } from "./pages/VideoGenerationPage";
+import EcosystemPage from "./pages/EcosystemPage";
+import MiniStudioPage from "./pages/MiniStudioPage";
+import DeployPage from "./pages/DeployPage";
+import IntegrationsPage from "./pages/IntegrationsPage";
+import { BackendProvider } from "./contexts/BackendContext";
 
 import LoadingScreen from "./components/LoadingScreen";
 import { AgeVerification } from "./components/AgeVerification";
@@ -35,8 +40,9 @@ import { usePushNotifications } from "./hooks/usePushNotifications";
 
 function Router() {
   const [isMobile, setIsMobile] = useState(false);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
   const { user, loading: authLoading } = useAuth();
-  const { isGuest } = useGuest();
+  const { isGuest, setAsGuest } = useGuest();
   usePushNotifications(); // Initialize push notifications
 
   useEffect(() => {
@@ -46,9 +52,29 @@ function Router() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Wait for auth to load before rendering routes
-  if (authLoading) {
-    return <LoadingScreen onComplete={() => {}} />;
+  useEffect(() => {
+    if (!authLoading) {
+      setAuthTimedOut(false);
+      return;
+    }
+    const t = window.setTimeout(() => setAuthTimedOut(true), 4000);
+    return () => window.clearTimeout(t);
+  }, [authLoading]);
+
+  // Local + Cloudflare Pages: default guest when auth is unavailable or unset
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = window.location.hostname;
+    const autoGuestHost =
+      host.includes("pages.dev") || host === "localhost" || host === "127.0.0.1";
+    if (!autoGuestHost) return;
+    if (authLoading && !authTimedOut) return;
+    if (!isGuest && !user) setAsGuest();
+  }, [isGuest, user, setAsGuest, authLoading, authTimedOut]);
+
+  // Avoid infinite splash when Node tRPC is slow/offline (common cause of "卡住")
+  if (authLoading && !authTimedOut) {
+    return <LoadingScreen onComplete={() => setAuthTimedOut(true)} />;
   }
 
   return (
@@ -126,6 +152,26 @@ function Router() {
           <VideoGenerationPage />
         </DashboardLayout>
       </Route>
+      <Route path="/mini-studio">
+        <DashboardLayout>
+          <MiniStudioPage />
+        </DashboardLayout>
+      </Route>
+      <Route path="/ecosystem">
+        <DashboardLayout>
+          <EcosystemPage />
+        </DashboardLayout>
+      </Route>
+      <Route path="/deploy">
+        <DashboardLayout>
+          <DeployPage />
+        </DashboardLayout>
+      </Route>
+      <Route path="/integrations">
+        <DashboardLayout>
+          <IntegrationsPage />
+        </DashboardLayout>
+      </Route>
 
       <Route path="/home">
         <DashboardLayout>
@@ -162,10 +208,12 @@ function App() {
         <ErrorBoundary>
           <GuestProvider>
             <ThemeProvider defaultTheme="dark" switchable>
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-              </TooltipProvider>
+              <BackendProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Router />
+                </TooltipProvider>
+              </BackendProvider>
             </ThemeProvider>
           </GuestProvider>
         </ErrorBoundary>
@@ -178,15 +226,17 @@ function App() {
       <ErrorBoundary>
         <GuestProvider>
           <ThemeProvider defaultTheme="dark" switchable>
-            <TooltipProvider>
-              {showLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-              {!showLoading && (
-                <>
-                  <Toaster />
-                  <Router />
-                </>
-              )}
-            </TooltipProvider>
+            <BackendProvider>
+              <TooltipProvider>
+                {showLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
+                {!showLoading && (
+                  <>
+                    <Toaster />
+                    <Router />
+                  </>
+                )}
+              </TooltipProvider>
+            </BackendProvider>
           </ThemeProvider>
         </GuestProvider>
       </ErrorBoundary>
