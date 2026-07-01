@@ -382,6 +382,9 @@ def create_app(settings: Settings) -> FastAPI:
                 content={"detail": f"Blocked by firewall: {reason}"},
             )
         response = await call_next(request)
+        path = request.url.path
+        if path in {"/", "/index.html"} or path.endswith(".html"):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         if response.status_code == 404:
             firewall.record_404(ip)
         return response
