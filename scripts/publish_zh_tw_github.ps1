@@ -1,10 +1,10 @@
-# Publish Traditional Chinese README to Monster-Ai-ZH-TW (zh-tw remote)
+﻿# Publish Guardian Ai full tree + Traditional Chinese README to Monster-Ai-ZH-TW
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $zhReadme = Join-Path $root "Monster-ai Zh-Tw\README.md"
 $enReadme = Join-Path $root "README.md"
-$enBackup = Join-Path $env:TEMP "monster-ai-readme-en-backup.md"
+$enBackup = Join-Path $env:TEMP "guardian-ai-readme-en-backup.md"
 
 if (-not (Test-Path $zhReadme)) {
     throw "Missing $zhReadme"
@@ -17,17 +17,16 @@ try {
     Copy-Item -Force $zhReadme $enReadme
 
     Push-Location $root
-    git add README.md .gitignore "Monster-ai Zh-Tw/" `
+    git add README.md "Monster-ai Zh-Tw/" `
         scripts/sync_monster_ai_zh_tw_folder.ps1 scripts/publish_zh_tw_github.ps1
     $status = git status --porcelain
-    if (-not $status) {
-        Write-Host "No changes to commit."
-    } else {
-        git commit -m "docs(zh-TW): Monster-ai Zh-Tw folder and publish scripts"
-        git push zh-tw main
-        Write-Host "Pushed to zh-tw main with Traditional Chinese README."
+    if ($status) {
+        git commit -m "docs(zh-TW): Guardian Ai Traditional Chinese README sync"
+    }
+    git push zh-tw HEAD:main --force-with-lease
+    Write-Host "Pushed to https://github.com/SB00001090/Monster-Ai-ZH-TW"
+    if ($status) {
         git reset --hard HEAD~1
-        Write-Host "Local main reset — English README unchanged for origin."
     }
 } finally {
     if (Test-Path $enBackup) {
@@ -37,4 +36,4 @@ try {
     Pop-Location
 }
 
-Write-Host "English README restored at repo root."
+Write-Host "English README restored. Clone: git clone https://github.com/SB00001090/Monster-Ai-ZH-TW.git"
