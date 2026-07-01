@@ -120,6 +120,21 @@ def _which(cmd: str) -> str | None:
     return shutil.which(cmd)
 
 
+def _node_api_cmd() -> list[str] | None:
+    """Start tsx directly — avoids pnpm.ps1 PowerShell execution-policy failures."""
+    if sys.platform == "win32":
+        tsx_bin = ROOT / "node_modules" / ".bin" / "tsx.cmd"
+        if tsx_bin.is_file():
+            return [str(tsx_bin), "server/_core/index.ts"]
+    tsx_cli = ROOT / "node_modules" / "tsx" / "dist" / "cli.mjs"
+    if tsx_cli.is_file() and _which("node"):
+        return ["node", str(tsx_cli), "server/_core/index.ts"]
+    pnpm = "pnpm.cmd" if sys.platform == "win32" else "pnpm"
+    if _which(pnpm):
+        return [pnpm, "exec", "tsx", "server/_core/index.ts"]
+    return None
+
+
 def _react_build_paths() -> tuple[Path, Path]:
     return ROOT / "dist" / "public" / "index.html", ROOT / "client"
 
@@ -334,16 +349,22 @@ def _free_port(port: int, *, attempts: int = 3) -> bool:
 
 def _start_node_api(port: int) -> int:
     global _node_api_proc
-    pnpm = "pnpm.cmd" if sys.platform == "win32" else "pnpm"
-    if not _which(pnpm):
-        print("ERROR: pnpm not found. Install Node.js 20+ and: npm install -g pnpm")
-        return 0
     if not (ROOT / "node_modules").is_dir():
         print("Installing Node dependencies...")
-        r = subprocess.run([pnpm, "install"], cwd=str(ROOT), shell=False)
-        if r.returncode != 0:
-            print("ERROR: pnpm install failed.")
+        pnpm = "pnpm.cmd" if sys.platform == "win32" else "pnpm"
+        npm = "npm.cmd" if sys.platform == "win32" else "npm"
+        installer = pnpm if _which(pnpm) else npm if _which(npm) else None
+        if not installer:
+            print("ERROR: Node.js not found. Install Node.js 20+ and run npm install.")
             return 0
+        r = subprocess.run([installer, "install"], cwd=str(ROOT), shell=False)
+        if r.returncode != 0:
+            print(f"ERROR: {installer} install failed.")
+            return 0
+    node_cmd = _node_api_cmd()
+    if not node_cmd:
+        print("ERROR: tsx not found. Run npm install in the project root.")
+        return 0
 
     discovered = _discover_node_api_port(port)
     if discovered is not None:
@@ -381,7 +402,7 @@ def _start_node_api(port: int) -> int:
 
     with log.open("a", encoding="utf-8") as log_file:
         _node_api_proc = subprocess.Popen(
-            [pnpm, "exec", "tsx", "server/_core/index.ts"],
+            node_cmd,
             cwd=str(ROOT),
             env=env,
             stdout=log_file,
