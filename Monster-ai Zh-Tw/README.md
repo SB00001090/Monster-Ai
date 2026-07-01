@@ -1,94 +1,115 @@
-﻿# Guardian Ai
+# Guardian Ai
 
 **Developed by Suckbob | Guardian Ai**
 
-**?砍?芸??蝘?霅?* ??AI 撟喳 ??撟澆??撘撓?脣飛蝧?璅⊥???嚗P + ?? + 敶梁? + ?唾?嚗C ??镼脯?撖?蝺游澈?2E ?脩垢?郊嚗?典雿??餉銝銵?
-> **Call Guard 撌脣??函宏?扎?* ?垢??????**Cloudflare Tunnel HTTPS** ??**USB `adb reverse`** ????Tailscale? QR Code??頛詨 LAN IP??
-閰唾? [`deploy/guardian/ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) 繚 [`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md)
+**本地優先、隱私保護** 的 AI 平台 — 幼兒教育式漸進學習、多模態生成（RP + 圖片 + 影片 + 音訊）、OC 反抄襲、加密訓練庫、E2E 雲端同步，全部在你的電腦上執行。
 
-## 蝜?銝剜? Repo嚗遣霅?clone嚗?
+> **Call Guard 已完全移除。** 遠端連線僅支援 **Cloudflare Tunnel HTTPS** 或 **USB `adb reverse`** — 無 Tailscale、無 QR Code、無需輸入 LAN IP。
+
+詳見 [`deploy/guardian/ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) · [`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md)
+
+## 繁體中文 Repo（建議 clone）
+
+**GitHub CLI（需先安裝 [gh](https://cli.github.com/) 並登入）：**
+
+```bash
+gh repo clone SB00001090/Monster-Ai-ZH-TW
+cd Monster-Ai-ZH-TW
+run.bat
+```
+
+**或使用 git：**
+
 ```bash
 git clone https://github.com/SB00001090/Monster-Ai-ZH-TW.git
 cd Monster-Ai-ZH-TW
 run.bat
 ```
 
-- ?望?銝?Repo嚗SB00001090/Guardian-Ai](https://github.com/SB00001090/Guardian-Ai)
-- ??Repo ?寧??README ?箇?擃葉??蝔?蝣潸? Guardian-Ai `main` ?郊
+- 英文主 Repo：[SB00001090/Guardian-Ai](https://github.com/SB00001090/Guardian-Ai) — `gh repo clone SB00001090/Guardian-Ai`
+- 本 Repo 根目錄 README 為繁體中文，程式碼與 Guardian-Ai `main` 同步
 
-- ?芣?靽桀儔嚗??LLM ?
-- Web UI嚗TTP + WebSocket嚗?- 璅∠??瑽???靘?瘙??典???- ?? NVIDIA GPU ?雿喳?嚗TX 4060 / 4090嚗?- MIT ??
+- 自我修復，自動 LLM 備援
+- Web UI（HTTP + WebSocket）
+- 模組化架構 — 依需求啟用功能
+- 針對 NVIDIA GPU 最佳化（RTX 4060 / 4090）
+- MIT 授權
 
-## ?銝閬?
-| ? | ???|
+## 功能一覽
+
+| 功能 | 狀態 |
 |------|------|
-| ?予 + WebSocket UI | ?舐 |
-| SillyTavern 憸冽閫?格?嚗???嗚??店嚗?| ?舐 |
-| ?芣?靽桀儔 LLM + ???岫 | ?舐 |
-| ????嚗omfyUI + LoRA + LLM ?內閰? | ?舐 |
-| ?脣援瞏啣???鞈芰祟??+ ?芸??岫 | ?舐 |
-| ??頧蔣????.mp4嚗閮圾?漲/FPS嚗?| ?舐 |
-| 銝?萄???Monster AI + ComfyUI嚗?| ?舐 |
-| ??甇瑕嚗???30 憭抬? | ?舐 |
-| 閫?格?鈭箇?? + ?剖? | ?舐 |
-| Docker 摰??嚗onster-ai + ComfyUI + Ollama嚗?| ?舐 |
-| 靘?GPU 閮剖?瑼??頛芋??| ?舐 |
-| 隤??嚗iper TTS嚗?| ?舐 |
-| 隤??嚗TTS嚗?剁? | ?貊 |
-| ?芸?璅∠?摰???| ?舐 |
-| Grok ?∪祟?乩犖?潘??砍嚗?| ?舐 |
-| 摮貊??脩??+ 摰霅衣內 | ?舐 |
-| ?刻??撘耨敺抬?watchdog + git嚗?| ?舐 |
-| MonsterGuard Discord 璈鈭綽??脰?擉? | ?舐 |
-| ?脣援瞏?LoRA 閮毀嚗train_image_quality_4060.py`嚗?| ?舐 |
-| **Guardian Ai**嚗2E ?郊?C ???匱??摮貊??隤文飛蝧? | ?舐 |
-| Cloudflare Tunnel + USB APK 摰?嚗? Tailscale / QR嚗?| ?舐 |
-| Google / GitHub OAuth ?脩垢?郊 | ?舐 |
-| Guardian ?郊 UI嚗/guardian-sync`嚗?| ?舐 |
-| Grok ??撘飛蝧?`/api/guardian/learning/supervise`嚗?| ?舐 |
-| **?芯蜓蝬脩窗摮貊?**嚗/network-learning`?rok 撖拇嚗?| ?舐 |
-| **???釭?那**嚗rt triage嚗?撖?蝺游澈嚗?| ?舐 |
-| **撟澆??撘飛蝧?*嚗/toddler-learning`嚗?| ?舐 |
-| **Guardian Ai Android**嚗apps/guardian-ai-android`嚗?| ?舐 |
-| 蝖祉楊蝣澆?鞎祈???怠匱?飛蝧??? | ?舐 |
+| 聊天 + WebSocket UI | 可用 |
+| SillyTavern 風格角色扮演（卡片、記憶、多會話） | 可用 |
+| 自我修復 LLM + 生成重試 | 可用 |
+| 圖像生成（ComfyUI + LoRA + LLM 提示詞） | 可用 |
+| 防崩潰圖像品質篩選 + 自動重試 | 可用 |
+| 文字轉影片（僅 .mp4，自訂解析度/FPS） | 可用 |
+| 一鍵啟動（Monster AI + ComfyUI） | 可用 |
+| 生成歷史（保留 30 天） | 可用 |
+| 角色扮演人物肖像 + 頭像 | 可用 |
+| Docker 完整堆疊（monster-ai + ComfyUI + Ollama） | 可用 |
+| 依 GPU 設定檔自動下載模型 | 可用 |
+| 語音合成（Piper TTS） | 可用 |
+| 語音克隆（XTTS，選用） | 選用 |
+| 自動模組安裝器 | 可用 |
+| Grok 無審查人格（本地） | 可用 |
+| 學習防火牆 + 安全警示 | 可用 |
+| 全自動程式修復（watchdog + git） | 可用 |
+| MonsterGuard Discord 機器人（防詐騙） | 可用 |
+| 防崩潰 LoRA 訓練（`train_image_quality_4060.py`） | 可用 |
+| **Guardian Ai**（E2E 同步、OC 指紋、幼兒式學習、錯誤學習） | 可用 |
+| Cloudflare Tunnel + USB APK 安裝（無需 Tailscale / QR） | 可用 |
+| Google / GitHub OAuth 雲端同步 | 可用 |
+| Guardian 同步 UI（`/guardian-sync`） | 可用 |
+| Grok 監督式學習（`/api/guardian/learning/supervise`） | 可用 |
+| **自主網絡學習**（`/network-learning`、Grok 審批） | 可用 |
+| **藝術品質分診**（art triage，加密訓練庫） | 可用 |
+| **幼兒教育式學習**（`/toddler-learning`） | 可用 |
+| **Guardian Ai Android**（`apps/guardian-ai-android`） | 可用 |
+| 硬編碼免責聲明（含幼兒學習提醒） | 可用 |
 
-## Guardian Ai ???詨? API
+## Guardian Ai — 核心 API
 
-| API | ?券?|
+| API | 用途 |
 |-----|------|
-| `GET /api/guardian/disclaimer` | 蝖祉楊蝣澆?鞎祈??撟澆????瘜甈整??舫??? |
-| `GET /api/guardian/status` | 撟喳?亙熒???`no_tailscale`?no_qr_code`嚗?|
-| `POST /api/guardian/sync/upload` | E2E ?? OC/?予/閮毀銝 |
-| `POST /api/guardian/sync/download` | 頝刻?蝵桅???|
-| `POST /api/guardian/errors/report` | ?芸??航炊? + 靽桀儔撱箄降 |
-| `POST /api/guardian/backstory/generate` | 憓撥 OC ???嚗?蝝?? + 憭芋?? |
-| `POST /api/guardian/oc/protect` | OC ?? + `GDA-` 瘚格偌??|
-| `GET /api/guardian/connection` | Tunnel URL + USB APK 鞈? |
-| `GET /api/guardian/training/status` | ??閮毀摨怎???|
-| `POST /api/guardian/training/migrate` | ?????? good/bad ?? |
-| `GET /api/guardian/training/export` | E2E ??閮毀???脩垢?郊?剁? |
-| `GET /api/guardian/network-learning/status` | 蝬脩窗摮貊??????閮剖? |
-| `POST /api/guardian/network-learning/consent` | ??/?日蝬脩窗摮貊??? |
-| `POST /api/guardian/network-learning/trigger` | ??閫貊摮貊??瑁? |
-| `GET /api/guardian/network-learning/directives` | 餈? Grok 撖拇?誘 |
-| `GET /api/guardian/network-learning/art-triage/status` | ???那???|
-| `POST /api/guardian/network-learning/art-triage/run` | ?瑁????釭?那 |
-| `POST /api/guardian/quality/gate` | ?釭?瑼???雿 70% 閬憭望? |
+| `GET /api/guardian/disclaimer` | 硬編碼免責聲明（幼兒提醒、無法退款、不可關閉） |
+| `GET /api/guardian/status` | 平台健康狀態（`no_tailscale`、`no_qr_code`） |
+| `POST /api/guardian/sync/upload` | E2E 加密 OC/聊天/訓練上傳 |
+| `POST /api/guardian/sync/download` | 跨裝置還原 |
+| `POST /api/guardian/errors/report` | 自動錯誤回報 + 修復建議 |
+| `POST /api/guardian/backstory/generate` | 增強 OC 背景故事（指紋閘門 + 多模態） |
+| `POST /api/guardian/oc/protect` | OC 指紋 + `GDA-` 浮水印 |
+| `GET /api/guardian/connection` | Tunnel URL + USB APK 資訊 |
+| `GET /api/guardian/training/status` | 加密訓練庫狀態 |
+| `POST /api/guardian/training/migrate` | 加密舊版明文 good/bad 圖像 |
+| `GET /api/guardian/training/export` | E2E 加密訓練包（雲端同步用） |
+| `GET /api/guardian/network-learning/status` | 網絡學習狀態與同意設定 |
+| `POST /api/guardian/network-learning/consent` | 授予/撤銷網絡學習同意 |
+| `POST /api/guardian/network-learning/trigger` | 手動觸發學習執行 |
+| `GET /api/guardian/network-learning/directives` | 近期 Grok 審批指令 |
+| `GET /api/guardian/network-learning/art-triage/status` | 藝術分診狀態 |
+| `POST /api/guardian/network-learning/art-triage/run` | 執行藝術品質分診 |
+| `POST /api/guardian/quality/gate` | 品質門檻 — 低於 70% 視為失敗 |
 
-### 撟澆??撘飛蝧?
-Guardian Ai ?飛蝧頂蝯梯身閮憿撮鈭粹?撟澆??祇郊?嚗瘛箏瘛晞迤?ａ??萸澈?鳥甇?rok 鞎痊???游飛蝧?蝔eb UI嚗?*`/toddler-learning`**
+### 幼兒教育式學習
 
-| ?孵? | ?誘 |
+Guardian Ai 的學習系統設計為類似人類幼兒般逐步成長：由淺入深、正面鼓勵、溫和糾正。Grok 負責監督整個學習過程。Web UI：**`/toddler-learning`**
+
+| 方式 | 指令 |
 |------|------|
 | Cloudflare Tunnel | `scripts\guardian\run-tunnel.bat` |
-| USB 摰? APK | `install-apk-adb.bat` |
-| Android | `apps\guardian-ai-android`嚗ai.guardian.app`嚗?|
+| USB 安裝 APK | `install-apk-adb.bat` |
+| Android | `apps\guardian-ai-android`（`ai.guardian.app`） |
 
-?辣嚗`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md) 繚 [`ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) 繚 [`LAUNCH_CHECKLIST.md`](../deploy/guardian/LAUNCH_CHECKLIST.md) 繚 [`GITHUB_RELEASE.md`](../deploy/guardian/GITHUB_RELEASE.md)
+文件：[`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md) · [`ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](../deploy/guardian/LAUNCH_CHECKLIST.md) · [`GITHUB_RELEASE.md`](../deploy/guardian/GITHUB_RELEASE.md)
 
-### ?芯蜓蝬脩窗摮貊?嚗5嚗?
-?身 **??**嚗?雿輻??蝣箏??????瑁???????蜓憿 Grok ??撖拇嚗??喲?鈭箄?憭拇? OC ?批捆??
-Web UI嚗?*`/network-learning`** ?????????孛?潦?銵?閮箝?鞎祈??禮7??
+### 自主網絡學習（G5）
+
+預設 **關閉**，需使用者明確同意後才會執行。所有外連主題由 Grok 監督審批，不傳送私人聊天或 OC 內容。
+
+Web UI：**`/network-learning`** — 同意開關、手動觸發、藝術分診、免責聲明 §7。
+
 ```yaml
 guardian:
   network_learning:
@@ -101,54 +122,63 @@ guardian:
     art_triage_enabled: true
 ```
 
-## 蝟餌絞?瘙?
+## 系統需求
+
 - **Python 3.11+**
-- **[Ollama](https://ollama.com)**嚗?鞎?LLM ??CUDA/GPU嚗?- **NVIDIA GPU** 撱箄降嚗TX 4060 8GB ??RTX 4090 24GB嚗?- Windows?inux ??macOS
+- **[Ollama](https://ollama.com)**（負責 LLM 的 CUDA/GPU）
+- **NVIDIA GPU** 建議（RTX 4060 8GB 或 RTX 4090 24GB）
+- Windows、Linux 或 macOS
 
-## 敹恍?憪?
-銴ˊ????`monster-ai` 鞈?憭曉?嚗?
-### 1. 摰? Ollama
+## 快速開始
 
-敺?[ollama.com](https://ollama.com) 銝?銝行??芋??
+複製或開啟 `monster-ai` 資料夾後：
+
+### 1. 安裝 Ollama
+
+從 [ollama.com](https://ollama.com) 下載並拉取模型：
 
 ```bash
 ollama pull llama3.2:3b
 ```
 
-### 2. 摰???璅∠?
+### 2. 安裝生成模組
 
 ```bat
 scripts\install_modules.bat
 ```
 
-??鋆?Piper 隤??函? PyTorch ??嚗--with-train`嚗?銝血皜祆璈?ComfyUI??
-### 3. ?? ComfyUI嚗???敶梁??剁?
+會安裝 Piper 語音、選用的 PyTorch 堆疊（`--with-train`），並偵測本機 ComfyUI。
 
-?交璈? ComfyUI嚗?憒?`C:\MonsterAI\comfyui`嚗??函?????敶梁???????GPU ???具?
-### 4. 銝?萄???
-`run.bat` ???? **ComfyUI**嚗撌脰身摰?嚗??? **Monster AI**嚗?
+### 3. 啟動 ComfyUI（圖像/影片用）
+
+若本機有 ComfyUI（例如 `C:\MonsterAI\comfyui`），在生成圖像或影片前先啟動其 GPU 啟動器。
+
+### 4. 一鍵啟動
+
+`run.bat` 會先啟動 **ComfyUI**（若已設定），再啟動 **Monster AI**：
+
 ```yaml
 launcher:
   auto_start_comfyui: true
   comfyui_path: auto
 ```
 
-**Windows嚗?*
+**Windows：**
 
 ```bat
 run.bat
 ```
 
-**Linux / macOS嚗?*
+**Linux / macOS：**
 
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
 
-### 5. pip Web UI 憟辣嚗?剁?
+### 5. pip Web UI 套件（選用）
 
-摰??函? UI ??嚗eact + HTML ?嚗????API 敺垢嚗?
+安裝獨立 UI 閘道（React + HTML 備援，自動啟動 API 後端）：
 
 ```bash
 npm run build
@@ -157,23 +187,30 @@ pip install -e ./monster-ai-webui
 monster-ai-webui
 ```
 
-閰唾? [monster-ai-webui/README.md](../monster-ai-webui/README.md) ??[I_UNDERSTAND.md](../monster-ai-webui/I_UNDERSTAND.md)??
-### 6. ?? UI
+詳見 [monster-ai-webui/README.md](../monster-ai-webui/README.md) 與 [I_UNDERSTAND.md](../monster-ai-webui/I_UNDERSTAND.md)。
 
-?? **http://127.0.0.1:7860**
+### 6. 開啟 UI
 
-??嚗?*?予** 繚 **閫?格?**嚗?亥??脣???店嚗?繚 **??**嚗???/ 敶梁? / TTS嚗?
-### React Web UI嚗脤?嚗?
-摰 React 隞雿撠??寧??`client/`?server/`?package.json`嚗底閬?[WEB_UI_README.md](../WEB_UI_README.md)??
-`monsterai/` 鞈?憭曄?? zip ??*撠???* ??**`run.bat` 銝?雿輻摰?*???萄???敺?`client/` ??`dist/public/` ??撱箇蔭敺? UI??
+前往 **http://127.0.0.1:7860**
+
+分頁：**聊天** · **角色扮演**（匯入角色卡、多會話） · **生成**（圖像 / 影片 / TTS）
+
+### React Web UI（進階）
+
+完整 React 介面位於專案根目錄（`client/`、`server/`、`package.json`）。詳見 [WEB_UI_README.md](../WEB_UI_README.md)。
+
+`monsterai/` 資料夾為原始 zip 的**封存參考** — **`run.bat` 不會使用它**。一鍵啟動會從 `client/` → `dist/public/` 提供建置後的 UI。
+
 ```bash
-cp .env.example .env    # 擐活
+cp .env.example .env    # 首次
 pnpm install
 pnpm dev                # React (:5173) + tRPC API (:3000)
-pnpm exec vite build    # 頛詨 ??dist/public/嚗 Python 敺垢??嚗?```
+pnpm exec vite build    # 輸出 → dist/public/（由 Python 後端提供）
+```
 
-?典銝??蝡舀??? Python嚗run.bat`嚗?霈?憭?閫?格?/??頝舐???砍 LLM ????
-## ??摰?
+在另一個終端機啟動 Python（`run.bat`），讓聊天/角色扮演/圖像路由連到本地 LLM 堆疊。
+
+## 手動安裝
 
 ```bash
 cd monster-ai
@@ -182,18 +219,21 @@ python -m venv .venv
 source .venv/bin/activate     # Linux/macOS
 
 pip install -r requirements.txt
-copy config.example.yaml config.yaml   # Windows嚗 config.yaml 撌脣??典?仿?嚗?python main.py
+copy config.example.yaml config.yaml   # Windows（若 config.yaml 已存在可略過）
+python main.py
 ```
 
-瑼Ｘ?啣?嚗?
+檢查環境：
+
 ```bash
 python scripts/check_cuda.py
 ```
 
-## GPU 隤踵嚗TX 4060 / 4090嚗?
-`config.yaml` ?批遣閮剖?瑼????其??憓??詨??剁?
+## GPU 調校（RTX 4060 / 4090）
 
-| GPU | ?誘嚗indows嚗?| 璅∪? | 銝???|
+`config.yaml` 內建設定檔 — 用一個環境變數套用：
+
+| GPU | 指令（Windows） | 模型 | 上下文 |
 |-----|-----------------|------|--------|
 | RTX 4060 (8 GB) | `set MONSTER_GPU_PROFILE=rtx_4060` | `llama3.2:3b` | 4096 |
 | RTX 4090 (24 GB) | `set MONSTER_GPU_PROFILE=rtx_4090` | `llama3.1:8b` | 8192 |
@@ -203,47 +243,51 @@ set MONSTER_GPU_PROFILE=rtx_4060
 run.bat
 ```
 
-Linux/macOS嚗export MONSTER_GPU_PROFILE=rtx_4090`
+Linux/macOS：`export MONSTER_GPU_PROFILE=rtx_4090`
 
-銋?湔蝺刻摩 `config.yaml`嚗?雿輻?閬神嚗?
+也可直接編輯 `config.yaml`，或使用個別覆寫：
+
 ```bash
 set MONSTER_LLM_MODEL=llama3.1:8b
 set MONSTER_LLM_NUM_CTX=8192
 set MONSTER_PORT=7860
 ```
 
-## API 蝡舫?
+## API 端點
 
-| 蝡舫? | 隤芣? |
+| 端點 | 說明 |
 |------|------|
-| `GET /health` | ?箸?亙熒瑼Ｘ |
-| `GET /status` | ?芣?靽桀儔???+ 璅∠??亙熒 |
-| `GET /config` | ???身摰?閬??思犖?潘? |
-| `GET /api/security/status` | ?脩??+ watchdog ???|
-| `GET /api/security/alerts` | 餈?摰霅衣內 |
-| `WS /api/security/ws/alerts` | Web UI ?單?摰 Toast |
-| `WS /ws/chat` | ?單??予嚗?渲??脫瞍?`session_id`嚗?|
-| `POST /api/generate/image` | ComfyUI ????嚗? LoRA嚗?|
-| `POST /api/generate/video` | ?寞活敶梁?嚗nimatediff 璅∪?嚗?|
+| `GET /health` | 基本健康檢查 |
+| `GET /status` | 自我修復狀態 + 模組健康 |
+| `GET /config` | 非敏感設定摘要（含人格） |
+| `GET /api/security/status` | 防火牆 + watchdog 狀態 |
+| `GET /api/security/alerts` | 近期安全警示 |
+| `WS /api/security/ws/alerts` | Web UI 即時安全 Toast |
+| `WS /ws/chat` | 即時聊天（支援角色扮演 `session_id`） |
+| `POST /api/generate/image` | ComfyUI 圖像生成（+ LoRA） |
+| `POST /api/generate/video` | 批次影片（animatediff 模式） |
 | `POST /api/generate/tts` | Piper TTS |
-| `GET /api/generate/checkpoints` | ? ComfyUI checkpoint |
-| `GET /api/generate/loras` | ? ComfyUI LoRA 璅∪? |
-| `GET /api/generate/progress` | ?瑟??極雿脣漲 |
-| `GET/POST /api/roleplay/characters` | 閫??|
-| `GET/POST /api/roleplay/sessions` | 閫?格??店 |
+| `GET /api/generate/checkpoints` | 列出 ComfyUI checkpoint |
+| `GET /api/generate/loras` | 列出 ComfyUI LoRA 模型 |
+| `GET /api/generate/progress` | 長時間工作進度 |
+| `GET/POST /api/roleplay/characters` | 角色卡 |
+| `GET/POST /api/roleplay/sessions` | 角色扮演會話 |
 
-WebSocket 閮?澆?嚗?
+WebSocket 訊息格式：
+
 ```json
 {
-  "message": "雿末嚗?,
+  "message": "你好！",
   "persona_mode": "grok",
-  "system": "雿銝雿??澆鈭箇??拍???
+  "system": "你是一位樂於助人的助理。"
 }
 ```
 
-`persona_mode`嚗grok`嚗?閮剔撖拇嚗custom`嚗蝙??`system`嚗? `off`??
-## Grok ?∪祟?乩犖??
-?砍 Grok 憸冽鈭箸 ??璈??乓?????閮剖??剁?
+`persona_mode`：`grok`（預設無審查）、`custom`（使用 `system`）、或 `off`。
+
+## Grok 無審查人格
+
+本地 Grok 風格人格 — 機智、直接、不拒絕。預設啟用：
 
 ```yaml
 persona:
@@ -251,16 +295,17 @@ persona:
   default_mode: grok
 ```
 
-??**?予** ???豢? **Grok / ?芾? / ??**???芋??
+在 **聊天** 分頁選擇 **Grok / 自訂 / 關閉**。拉取模型：
 
 ```bat
 scripts\setup_uncensored_model.bat
 ```
 
-?臬 `data/personas/grok_default.yaml` ?芾?隤除??
-## ?脩??摰
+可在 `data/personas/grok_default.yaml` 自訂語氣。
 
-摮貊??脩???箄?瘙????????????箏???
+## 防火牆與安全
+
+學習防火牆會為請求評分，重複違規者會升級為封鎖：
 
 ```yaml
 protection:
@@ -274,9 +319,11 @@ protection:
     discord_webhook: ""
 ```
 
-摰鈭辣?誑 Toast 憿舐內??Web UI嚗蒂?舫? `GET /api/security/alerts` ?亥岷??
-## ?刻??撘耨敺?
-??`repair.mode: full_auto` ??watchdog ????`data/logs/app.log` 銝剔? traceback嚗蒂?岫 LLM ???耨鋆??舫 git 敹怎 + pytest嚗?
+安全事件會以 Toast 顯示在 Web UI，並可透過 `GET /api/security/alerts` 查詢。
+
+## 全自動程式修復
+
+當 `repair.mode: full_auto` 時，watchdog 會掃描 `data/logs/app.log` 中的 traceback，並嘗試 LLM 生成的修補（可選 git 快照 + pytest）：
 
 ```yaml
 repair:
@@ -290,16 +337,23 @@ repair:
     restart_comfyui: true
 ```
 
-???`monster-ai/` ??git ?澈隞亙遣蝡??臬翰?扼??瑟??園??嗆?撠?靽桀儔甈⊥??
-## ?芣?靽桀儔
+需在 `monster-ai/` 有 git 倉庫以建立分支快照。熔斷機制限制每小時修復次數。
 
-Monster AI 瘥?30 蝘??Ollama?銝餉?璅∪?憭望?嚗?
-1. ???輸?閰?2. ???喳撱箔???LLM
-3. ??`/status` ????
-Ollama ?Ｙ??????＊蝷?`[Fallback mode]`??
-## ?脣援瞏啣???鞈芰頂蝯?
-Monster AI ?航?皜砍援瞏???釭??嚗??恍??脯?憌賢???閮?嚗?銝虫誑蝎曄??內閰?閰艾?
-### ?刻身摰葉?
+## 自我修復
+
+Monster AI 每 30 秒監控 Ollama。若主要模型失敗：
+
+1. 指數退避重試
+2. 切換至內建保險 LLM
+3. 在 `/status` 回報狀態
+
+Ollama 離線時，回應會顯示 `[Fallback mode]`。
+
+## 防崩潰圖像品質系統
+
+Monster AI 可自動偵測崩潰/劣質圖像（黑畫面、單色、過飽和、雜訊牆），並以精煉提示詞重試。
+
+### 在設定中啟用
 
 ```yaml
 modules:
@@ -314,93 +368,113 @@ modules:
       data_dir: "./data/quality"
 ```
 
-??**??** ??雿輻 **?釭蝭拚** ?舫?撠甈∟?瘙????閰艾?
-### ?釭璅∪?嚗TX 4060嚗?
-| 璅∪? | ?菜葫?孵? | VRAM 敶梢 |
-|------|----------|-----------|
-| `rules` | 敹恍?CPU ?撘??身嚗?| ??|
-| `light` | 閬? + CLIP 撠? | ??CPU |
-| `full` | 閬? + CLIP + 蝢飛? | ??CPU |
+在 **生成** 分頁使用 **品質篩選** 可針對單次請求切換自動重試。
 
-摰??貊 ML 閰?嚗?
+### 品質模式（RTX 4060）
+
+| 模式 | 偵測方式 | VRAM 影響 |
+|------|----------|-----------|
+| `rules` | 快速 CPU 啟發式（預設） | 無 |
+| `light` | 規則 + CLIP 對齊 | 僅 CPU |
+| `full` | 規則 + CLIP + 美學分數 | 僅 CPU |
+
+安裝選用 ML 評分：
+
 ```bat
 python scripts\install_modules.py --with-quality
 ```
 
-### 鞈???瑽?
-撠???靘?蝥?蝺湛?
+### 資料集結構
+
+封存圖像供後續訓練：
 
 ```
 data/quality/
-??? bad/              # ?芷??釭瑼Ｘ嚗 .json 銝剔匱鞈?嚗???? good/             # ????????? quality_log.jsonl
+├── bad/              # 未通過品質檢查（含 .json 中繼資料）
+├── good/             # 通過的圖像
+└── quality_log.jsonl
 ```
 
-### 閮毀?脣援瞏?LoRA嚗?060嚗?
-??釭蝭拚銝衣?????嚗?
+### 訓練防崩潰 LoRA（4060）
+
+啟用品質篩選並生成圖像後：
+
 ```bat
 pip install -r requirements-train.txt
 python scripts\train_image_quality_4060.py --low-vram
 ```
 
-頛詨嚗data/models/lora/anti_collapse.safetensors` ??銴ˊ??`ComfyUI/models/loras/` 銝血 UI 銝剝??
-### ?釭蝭拚??圾
+輸出：`data/models/lora/anti_collapse.safetensors` — 複製到 `ComfyUI/models/loras/` 並在 UI 中選取。
 
-| ?? | 閫?? |
+### 品質篩選疑難排解
+
+| 問題 | 解法 |
 |------|------|
-| ?岫?? / 霈 | ?? `max_retries` ? UI ?? **?釭蝭拚** |
-| ???鋡急??箏暺?| ?刻身摰身 `allow_dark_style: true` |
-| 憸冽??銵炊??| ? `mode: rules`嚗??CLIP ?舀?擃?`min_clip_score` |
+| 重試過多 / 變慢 | 降低 `max_retries` 或在 UI 關閉 **品質篩選** |
+| 暗色藝術被標為全黑 | 在設定設 `allow_dark_style: true` |
+| 風格化藝術誤判 | 僅用 `mode: rules`；若用 CLIP 可提高 `min_clip_score` |
 
-??`GET /status` ??`image_repair` 銝??蝝???
-## ??甇瑕
+在 `GET /status` 的 `image_repair` 下查看升級狀態。
 
-????蔣?TS???極雿?閮???`data/logs/generation_history/`??
-- 蝬脤?嚗?*??** ?? ??**??甇瑕**
-- CLI嚗python scripts\history_cli.py list --type image`
-- 閮剖?嚗history.retention_days: 30`嚗????芸?皜???
+## 生成歷史
 
-## 閫?格???
+所有圖像、影片、TTS、肖像工作會記錄在 `data/logs/generation_history/`。
 
-??**閫?格?** ??嚗?
-1. ?豢?閫
-2. ?? **??閫??**
-3. 暺? **????**嚗蝙?典?鞈芰祟?賂?
-4. 暺? **閮剔?剖?** ?湔閫??
-API嚗POST /api/roleplay/characters/{id}/portrait`?PATCH .../avatar`
+- 網頁：**生成** 分頁 → **生成歷史**
+- CLI：`python scripts\history_cli.py list --type image`
+- 設定：`history.retention_days: 30`，啟動時自動清除過期項目
 
-## 敶梁?頛詨嚗?mp4嚗?
-敶梁????撓??**`.mp4`**嚗? PATH 銝? ffmpeg嚗摮蔣?澆??曉 `data/tmp/`嚗?亙??芷??
-?函????? API ?芾?嚗?
+## 角色扮演肖像
+
+在 **角色扮演** 分頁：
+
+1. 選擇角色
+2. 開啟 **生成角色肖像**
+3. 點擊 **生成肖像**（使用品質篩選）
+4. 點擊 **設為頭像** 更新角色卡
+
+API：`POST /api/roleplay/characters/{id}/portrait`、`PATCH .../avatar`
+
+## 影片輸出（.mp4）
+
+影片生成僅輸出 **`.mp4`**（需 PATH 上有 ffmpeg）。暫存影格存放在 `data/tmp/`，拼接後刪除。
+
+在生成分頁或 API 自訂：
+
 ```json
 { "prompt": "...", "width": 512, "height": 512, "fps": 8, "frames": 16 }
 ```
 
-## ?芸?銝?璅∪?
+## 自動下載模型
 
 ```bat
 python scripts\download_models.py
 ```
 
-?摰???
+或在安裝時：
 
 ```bat
 python scripts\install_modules.py --download-models
 ```
 
-雿輻 `data/models/manifest.yaml` ??`MONSTER_GPU_PROFILE`嚗tx_4060 / rtx_4090嚗?
-## Docker嚗??游???
+使用 `data/models/manifest.yaml` 與 `MONSTER_GPU_PROFILE`（rtx_4060 / rtx_4090）。
 
-??舀 NVIDIA GPU ??Docker嚗?
+## Docker（完整堆疊）
+
+需支援 NVIDIA GPU 的 Docker：
+
 ```bat
 docker compose up -d --build
 docker compose exec ollama ollama pull llama3.2
 ```
 
-??嚗?*monster-ai** (:7860)??*comfyui** (:8188)??*ollama** (:11434)?? 
-摰孵??URL 閬?[`config.docker.yaml`](../config.docker.yaml)??
-## ?璅∠?
+服務：**monster-ai** (:7860)、**comfyui** (:8188)、**ollama** (:11434)。  
+容器內 URL 見 [`config.docker.yaml`](../config.docker.yaml)。
 
-蝺刻摩 `config.yaml`嚗?
+## 啟用模組
+
+編輯 `config.yaml`：
+
 ```yaml
 modules:
   image:
@@ -411,18 +485,23 @@ modules:
     token_env: "MONSTER_DISCORD_TOKEN"
 ```
 
-MonsterGuard 閮剖????芾?? [monster_ai/modules/discord/README.md](../monster_ai/modules/discord/README.md)??
-### MonsterGuard嚗iscord ?脰?擉?
+MonsterGuard 設定與攔截能力見 [monster_ai/modules/discord/README.md](../monster_ai/modules/discord/README.md)。
 
-**?隢??其犖?唬??撩?嚗?* [MONSTERGUARD_INVITE.md](../MONSTERGUARD_INVITE.md)  
-?湔???嚗ttps://discord.com/oauth2/authorize?client_id=1519991508172804096&permissions=1099511723008&scope=bot%20applications.commands
+### MonsterGuard（Discord 防詐騙）
 
-?敺??其遙銝???駁??瑁? `/guard setup`??
-**?芣嚗?* 銴ˊ `discord.token.local.example` ??`discord.token.local`嚗???**MESSAGE CONTENT INTENT**嚗敺銵?`scripts\start-monsterguard.bat`??
-?嚗? Nitro??霅?擉?撖疏撟??擉擳?????隞嗚?镼??閮 ??閬?[monster_ai/modules/discord/README.md](../monster_ai/modules/discord/README.md)??
-### ?游??祆? ComfyUI
+**邀請機器人到你的伺服器：** [MONSTERGUARD_INVITE.md](../MONSTERGUARD_INVITE.md)  
+直接連結：https://discord.com/oauth2/authorize?client_id=1519991508172804096&permissions=1099511723008&scope=bot%20applications.commands
 
-?乩??桃?瑁? ComfyUI嚗?閮?API嚗http://127.0.0.1:8188`嚗????璅∠?嚗?
+加入後，在任一文字頻道執行 `/guard setup`。
+
+**自架：** 複製 `discord.token.local.example` → `discord.token.local`，啟用 **MESSAGE CONTENT INTENT**，然後執行 `scripts\start-monsterguard.bat`。
+
+攔截：假 Nitro、驗證詐騙、加密貨幣詐騙、釣魚連結、惡意附件、突襲/垃圾訊息 — 見 [monster_ai/modules/discord/README.md](../monster_ai/modules/discord/README.md)。
+
+### 整合本機 ComfyUI
+
+若你單獨執行 ComfyUI（預設 API：`http://127.0.0.1:8188`），啟用圖像模組：
+
 ```yaml
 modules:
   image:
@@ -430,7 +509,8 @@ modules:
     comfyui_url: "http://127.0.0.1:8188"
 ```
 
-閮?`modules.image.checkpoint: auto` ?航?蝙??ComfyUI 銝剔?蝚砌??芋??
+設 `modules.image.checkpoint: auto` 可自動使用 ComfyUI 中的第一個模型。
+
 ```yaml
 modules:
   image:
@@ -439,66 +519,78 @@ modules:
     lora_strength: 0.8
   video:
     enabled: true
-    mode: animatediff   # ?寞活敶望嚗?閬???
+    mode: animatediff   # 批次影格；必要時逐格備援
     max_frames: 16
 ```
 
-## 撠?蝯?
+## 專案結構
 
 ```
 monster-ai/
-??? main.py
-??? config.yaml
-??? run.bat / run.sh
-??? scripts/
-??? tests/
-??? data/              # ?予?隤??瑁???gitignore嚗???? monster_ai/
-    ??? core/          # ?芣?靽桀儔?摨瑟炎??    ??? llm/           # Ollama + ?敺垢
-    ??? api/           # HTTP + WebSocket 頝舐
-    ??? modules/       # ?予???iscord?TS??蝺?    ??? protection/    # ?脩????郎蝷?    ??? persona/       # Grok ?∪祟?仿?閮?    ??? web/static/    # Web UI
+├── main.py
+├── config.yaml
+├── run.bat / run.sh
+├── scripts/
+├── tests/
+├── data/              # 聊天、日誌（執行時 gitignore）
+└── monster_ai/
+    ├── core/          # 自我修復、健康檢查
+    ├── llm/           # Ollama + 備援後端
+    ├── api/           # HTTP + WebSocket 路由
+    ├── modules/       # 聊天、圖像、Discord、TTS、訓練
+    ├── protection/    # 防火牆、速率限制、警示
+    ├── persona/       # Grok 無審查預設
+    └── web/static/    # Web UI
 ```
 
-## ??圾
+## 疑難排解
 
-| ?航炊 | 閫?? |
+| 錯誤 | 解法 |
 |------|------|
-| `127.0.0.1 refused connection` | ?瑁? `run.bat` 銝虫???蝒???|
-| `error 10048` ??鋡思???| ???? `run.bat` ?身 `MONSTER_PORT=7861` |
-| `No checkpoint in ComfyUI` | 撠?`.safetensors` ?曉 `ComfyUI/models/checkpoints/` ?銵?`scripts\setup_comfyui_checkpoint.bat` |
-| `Checkpoint 'x' missing` | ??`config.yaml` 閮?`checkpoint: auto` 銝阡???|
-| `ComfyUI is not running` | ?? `run_nvidia_gpu.bat` 敺???http://127.0.0.1:8188 |
-| 敶梁??∩? / 霈 | 雿輻 `mode: animatediff`嚗甈∴?嚗Ⅱ隤?checkpoint 摮 |
-| ?予?箇 `[Fallback mode]` | ?? Ollama + `ollama pull llama3.2:latest` |
+| `127.0.0.1 refused connection` | 執行 `run.bat` 並保持視窗開啟 |
+| `error 10048` 埠號被佔用 | 關閉舊的 `run.bat` 或設 `MONSTER_PORT=7861` |
+| `No checkpoint in ComfyUI` | 將 `.safetensors` 放到 `ComfyUI/models/checkpoints/` 或執行 `scripts\setup_comfyui_checkpoint.bat` |
+| `Checkpoint 'x' missing` | 在 `config.yaml` 設 `checkpoint: auto` 並重啟 |
+| `ComfyUI is not running` | 啟動 `run_nvidia_gpu.bat` 後開啟 http://127.0.0.1:8188 |
+| 影片卡住 / 變慢 | 使用 `mode: animatediff`（批次）；確認 checkpoint 存在 |
+| 聊天出現 `[Fallback mode]` | 啟動 Ollama + `ollama pull llama3.2:latest` |
 
-**VRAM 銝雲嚗TX 4060嚗?*
+**VRAM 不足（RTX 4060）**
 
-- `max_frames: 8`????`512x512`?xtts_enabled: false`
-- ??`config.yaml` ?? `num_ctx`
+- `max_frames: 8`、圖像 `512x512`、`xtts_enabled: false`
+- 在 `config.yaml` 降低 `num_ctx`
 
-## ?
+## 開發
 
 ```bash
 pip install -r requirements-dev.txt
 pytest
 ```
 
-閬?閬?[CONTRIBUTING.md](../CONTRIBUTING.md)??
-## GPU ?酉嚗?060 vs 4090嚗?
+規範見 [CONTRIBUTING.md](../CONTRIBUTING.md)。
+
+## GPU 備註（4060 vs 4090）
+
 | | RTX 4060 8GB | RTX 4090 24GB |
 |--|--------------|---------------|
-| LLM | `llama3.2:latest`嚗tx 4096 | `llama3.1:8b`嚗tx 8192 |
-| 敶梁?敶望 | 16嚗?閮哨? | 閮剖?銝剜?憭?32 |
-| XTTS ?? | 靽? `xtts_enabled: false` | ?臬???|
-| ComfyUI | SD1.5 512px | SDXL 撌乩?瘚? OK |
+| LLM | `llama3.2:latest`，ctx 4096 | `llama3.1:8b`，ctx 8192 |
+| 影片影格 | 16（預設） | 設定中最多 32 |
+| XTTS 克隆 | 保持 `xtts_enabled: false` | 可啟用 |
+| ComfyUI | SD1.5 512px | SDXL 工作流程 OK |
 
-?瑁? `run.bat` ?身 `MONSTER_GPU_PROFILE=rtx_4060` ??`rtx_4090`??
-## 頝舐???
-1. ?? AnimateDiff ComfyUI 撌乩?瘚?嚗甈⊿?敶梁?嚗?2. ~~Discord 璈鈭箸??外~嚗onsterGuard 撌脫?綽?
-3. LoRA 閮毀???剁?unsloth嚗?4. 蝚砌??寞芋蝯???API
+執行 `run.bat` 前設 `MONSTER_GPU_PROFILE=rtx_4060` 或 `rtx_4090`。
 
-## ??
+## 路線圖
 
-MIT ??閬?[LICENSE](../LICENSE)??
+1. 原生 AnimateDiff ComfyUI 工作流程（單次通過影片）
+2. ~~Discord 機器人橋接~~（MonsterGuard 已推出）
+3. LoRA 訓練啟動器（unsloth）
+4. 第三方模組外掛 API
+
+## 授權
+
+MIT — 見 [LICENSE](../LICENSE)。
+
 ---
 
-**English README:** [README.en.md](./README.en.md) 繚 **GitHub 銝嚗?* [GITHUB_銝隤芣?.md](./GITHUB_銝隤芣?.md)
+**English README:** [README.en.md](./README.en.md) · **GitHub 上傳：** [GITHUB_上傳說明.md](./GITHUB_上傳說明.md)

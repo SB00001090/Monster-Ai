@@ -6,7 +6,25 @@
 
 英文主倉庫（origin）：
 
-**https://github.com/SB00001090/Monster-Ai**
+**https://github.com/SB00001090/Guardian-Ai**
+
+### Clone 指令
+
+```bash
+# 繁體中文 Repo（建議）
+gh repo clone SB00001090/Monster-Ai-ZH-TW
+cd Monster-Ai-ZH-TW
+
+# 英文主 Repo
+gh repo clone SB00001090/Guardian-Ai
+```
+
+或使用 git：
+
+```bash
+git clone https://github.com/SB00001090/Monster-Ai-ZH-TW.git
+git clone https://github.com/SB00001090/Guardian-Ai.git
+```
 
 ---
 
@@ -82,7 +100,7 @@ git remote -v
 
 | 遠端 | URL |
 |------|-----|
-| `origin` | `https://github.com/SB00001090/Monster-Ai.git` |
+| `origin` | `https://github.com/SB00001090/Guardian-Ai.git` |
 | `zh-tw` | `https://github.com/SB00001090/Monster-Ai-ZH-TW.git` |
 
 若缺少 `zh-tw`：
@@ -99,7 +117,7 @@ git remote add zh-tw https://github.com/SB00001090/Monster-Ai-ZH-TW.git
 |------|------|
 | `Monster-ai Zh-Tw/README.md` | 繁體中文完整說明（ZH-TW 倉庫首頁用） |
 | `Monster-ai Zh-Tw/README.en.md` | 指向父目錄英文 README |
-| `README.md`（根目錄） | 英文版（Monster-Ai 主倉庫） |
+| `README.md`（根目錄） | 英文版（Guardian-Ai 主倉庫） |
 | `scripts/sync_monster_ai_zh_tw_folder.ps1` | 同步程式碼到此資料夾 |
 | `scripts/publish_zh_tw_github.ps1` | 一鍵推送繁中 README 到 zh-tw |
 | `scripts/publish_zh_tw_release.ps1` | 發布 ZH-TW Release 資產 |

@@ -36,4 +36,4 @@ try {
     Pop-Location
 }
 
-Write-Host "English README restored. Clone: git clone https://github.com/SB00001090/Monster-Ai-ZH-TW.git"
+Write-Host "English README restored. Clone: gh repo clone SB00001090/Monster-Ai-ZH-TW"

@@ -83,6 +83,15 @@ Docs: [`MASTER_SPEC_20260901.md`](deploy/guardian/MASTER_SPEC_20260901.md) · [`
 - **NVIDIA GPU** recommended (RTX 4060 8GB or RTX 4090 24GB)
 - Windows, Linux, or macOS
 
+## Repositories
+
+| Repo | Language | Clone |
+|------|----------|-------|
+| [SB00001090/Guardian-Ai](https://github.com/SB00001090/Guardian-Ai) | English README | `gh repo clone SB00001090/Guardian-Ai` |
+| [SB00001090/Monster-Ai-ZH-TW](https://github.com/SB00001090/Monster-Ai-ZH-TW) | Traditional Chinese README | `gh repo clone SB00001090/Monster-Ai-ZH-TW` |
+
+Without GitHub CLI: `git clone https://github.com/SB00001090/Guardian-Ai.git` or `git clone https://github.com/SB00001090/Monster-Ai-ZH-TW.git`
+
 ## Quick start
 
 Clone or open the `monster-ai` folder, then:
