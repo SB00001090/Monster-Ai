@@ -26,10 +26,14 @@ try {
         git commit -m "docs(zh-TW): Monster-ai Zh-Tw folder and publish scripts"
         git push zh-tw main
         Write-Host "Pushed to zh-tw main with Traditional Chinese README."
+        git reset --hard HEAD~1
+        Write-Host "Local main reset — English README unchanged for origin."
     }
 } finally {
-    Copy-Item -Force $enBackup $enReadme
-    Remove-Item -Force $enBackup -ErrorAction SilentlyContinue
+    if (Test-Path $enBackup) {
+        Copy-Item -Force $enBackup $enReadme
+        Remove-Item -Force $enBackup -ErrorAction SilentlyContinue
+    }
     Pop-Location
 }
 
