@@ -39,7 +39,7 @@ def dashboard_config() -> dict:
                 "VITE_MONSTER_API_URL": "https://YOUR-TUNNEL.trycloudflare.com",
             },
         },
-        "github_repo": "SB00001090/Monster-Ai-Bot",
+        "github_repo": "SB00001090/Monster-Ai",
         "custom_domain_optional": "monster-ai.yourdomain.com",
         "pages_url": "https://monster-ai.pages.dev",
     }

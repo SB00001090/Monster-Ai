@@ -155,6 +155,23 @@ def _ensure_data_dirs() -> None:
         (Path("./data") / sub).mkdir(parents=True, exist_ok=True)
 
 
+def _bootstrap_tunnel_env(settings: Settings) -> None:
+    """Load MONSTER_TUNNEL_URL from data/callguard/tunnel_url.txt when env unset."""
+    cg = settings.protection.callguard
+    key = cg.tunnel_url_env
+    if os.environ.get(key, "").strip():
+        return
+    path = Path(cg.tunnel_url_file)
+    if not path.is_absolute():
+        path = Path(__file__).resolve().parents[1] / path
+    if not path.is_file():
+        return
+    url = path.read_text(encoding="utf-8-sig").strip().rstrip("/")
+    if url:
+        os.environ[key] = url
+        logger.info("MONSTER_TUNNEL_URL loaded from %s", path)
+
+
 def _setup_file_logging() -> None:
     log_path = Path("./data/logs/app.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -204,6 +221,7 @@ async def lifespan(app: FastAPI):
 
 def create_app(settings: Settings) -> FastAPI:
     _ensure_data_dirs()
+    _bootstrap_tunnel_env(settings)
     _setup_file_logging()
     _init_sentry(settings)
 

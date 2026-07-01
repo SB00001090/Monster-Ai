@@ -66,7 +66,7 @@ def start_quick_tunnel() -> int:
     print("Starting quick tunnel → http://127.0.0.1:7860")
     print("Ensure python main.py is running locally.")
     print("Tunnel URL auto-saves to data/callguard/tunnel_url.txt")
-    print("Also paste into Call Guard App → Cloudflare Tunnel")
+    print("Set MONSTER_TUNNEL_URL / VITE_MONSTER_API_URL to this URL for Pages + mobile")
     proc = subprocess.Popen(
         [cf, "tunnel", "--url", "http://127.0.0.1:7860"],
         cwd=str(ROOT),
@@ -74,6 +74,8 @@ def start_quick_tunnel() -> int:
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        encoding="utf-8",
+        errors="replace",
     )
     assert proc.stdout is not None
     for line in proc.stdout:

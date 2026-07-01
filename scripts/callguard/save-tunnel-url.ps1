@@ -10,5 +10,5 @@ if (-not $Url) {
 $Url = $Url.Trim().TrimEnd('/')
 Set-Content -Path $out -Value $Url -Encoding UTF8
 Write-Host "[OK] 已儲存: $out"
-Write-Host "Call Guard App → Cloudflare Tunnel 欄位貼上:"
+Write-Host "Cloudflare Pages → VITE_MONSTER_API_URL / MONSTER_TUNNEL_URL:"
 Write-Host "  $Url"
