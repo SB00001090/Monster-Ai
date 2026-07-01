@@ -1,5 +1,6 @@
 import { useGuest } from "@/contexts/GuestContext";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
+import OAuthProviderButtons from "@/components/OAuthProviderButtons";
+import { getOAuthLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
@@ -28,7 +29,7 @@ export default function LoginPage() {
       handleGuestMode();
       return;
     }
-    window.location.href = getLoginUrl();
+    window.location.href = getOAuthLoginUrl();
   };
 
   const handleDevLogin = () => {
@@ -46,21 +47,24 @@ export default function LoginPage() {
               className="w-20 h-20 rounded-2xl object-cover shadow-lg shadow-violet-500/20"
             />
           </div>
-          <CardTitle className="text-3xl font-bold">MonsterAi</CardTitle>
+          <CardTitle className="text-3xl font-bold">Monster Guardian AI</CardTitle>
           <CardDescription className="mt-2">
-            {t("common.welcome") || "Welcome to MonsterAi"}
+            {t("common.welcome") || "本地優先 · 端到端加密雲端同步"}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="space-y-3">
+            <OAuthProviderButtons />
+
             <Button
               onClick={handleLogin}
-              className="w-full gap-2 bg-accent hover:bg-accent/90"
+              variant="secondary"
+              className="w-full gap-2"
               size="lg"
             >
               {oauthConfigured
-                ? (t("auth.login") || "Sign in")
+                ? (t("auth.login") || "其他方式登入")
                 : (t("auth.devLogin") || "Dev Sign In")}
             </Button>
 

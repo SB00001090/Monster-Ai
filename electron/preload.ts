@@ -20,6 +20,13 @@ contextBridge.exposeInMainWorld('electron', {
   // 系統信息
   getPlatform: () => process.platform,
   getArch: () => process.arch,
+
+  // Monster Guardian AI — desktop vault passphrase (safeStorage)
+  guardianVaultStatus: () => ipcRenderer.invoke('guardian-vault-status'),
+  guardianVaultSetPassphrase: (passphrase: string) =>
+    ipcRenderer.invoke('guardian-vault-set-passphrase', passphrase),
+  guardianVaultGetPassphrase: () => ipcRenderer.invoke('guardian-vault-get-passphrase'),
+  guardianVaultClear: () => ipcRenderer.invoke('guardian-vault-clear'),
 });
 
 declare global {
@@ -33,6 +40,18 @@ declare global {
       saveOfflineData: (data: any) => Promise<boolean>;
       getPlatform: () => string;
       getArch: () => string;
+      guardianVaultStatus: () => Promise<{
+        configured: boolean;
+        safeStorageAvailable: boolean;
+        fingerprint?: string;
+      }>;
+      guardianVaultSetPassphrase: (passphrase: string) => Promise<{
+        ok: boolean;
+        fingerprint?: string;
+        reason?: string;
+      }>;
+      guardianVaultGetPassphrase: () => Promise<{ ok: boolean; length?: number }>;
+      guardianVaultClear: () => Promise<boolean>;
     };
   }
 }

@@ -1,6 +1,6 @@
 # 上傳 MonsterCallGuard APK 至 GitHub Releases（無 QR Code）
 param(
-    [string]$Version = "1.2.0",
+    [string]$Version = "1.3.1",
     [string]$Repo = "SB00001090/Monster-Ai",
     [string]$ProjectRoot = "",
     [switch]$Draft
@@ -30,12 +30,14 @@ if (-not $gh) {
 }
 
 $notes = @"
-Monster AI Call Guard $tag
+Monster Guardian AI — Android $tag
 
+- Monster Guardian E2E 雲端同步（Google/GitHub + passphrase）
 - Cloudflare Tunnel HTTPS 連線（唔使 IP）
 - 已移除 Tailscale 同所有 QR Code
-- 信任分數 + 匿名 hash 回報（無公開留言板）
-- Developed by Suckbob | Monster AI Call Guard
+- 訓練 Vault Keystore 金鑰綁定
+- USB adb 直裝 + GitHub Releases 分發
+- Developed by Suckbob | Monster Guardian AI
 "@
 
 $args = @(

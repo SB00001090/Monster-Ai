@@ -38,6 +38,7 @@ fun HomeScreen(
     onNavPaywall: () -> Unit,
     onNavPrivacy: () -> Unit,
     onNavAntiTheft: () -> Unit,
+    onNavGuardianSync: () -> Unit,
 ) {
     var tunnel by remember(tunnelUrl) { mutableStateOf(tunnelUrl) }
 
@@ -93,5 +94,8 @@ fun HomeScreen(
         Button(onClick = onNavPaywall, modifier = Modifier.fillMaxWidth()) { Text("付費 / 試用") }
         Button(onClick = onNavPrivacy, modifier = Modifier.fillMaxWidth()) { Text("透明資安告知") }
         Button(onClick = onNavAntiTheft, modifier = Modifier.fillMaxWidth()) { Text("防盜模式") }
+        Button(onClick = onNavGuardianSync, modifier = Modifier.fillMaxWidth()) {
+            Text("Monster Guardian 雲端同步")
+        }
     }
 }

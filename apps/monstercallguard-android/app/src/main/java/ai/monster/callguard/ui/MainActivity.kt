@@ -11,6 +11,7 @@ import ai.monster.callguard.network.TunnelConnection
 import ai.monster.callguard.service.CallGuardForegroundService
 import ai.monster.callguard.sync.SyncScheduler
 import ai.monster.callguard.ui.screens.AntiTheftScreen
+import ai.monster.callguard.ui.screens.GuardianSyncScreen
 import ai.monster.callguard.ui.screens.HomeScreen
 import ai.monster.callguard.ui.screens.PaywallScreen
 import ai.monster.callguard.ui.screens.PrivacyScreen
@@ -95,7 +96,11 @@ class MainActivity : ComponentActivity() {
                                 onNavPaywall = { nav.navigate("paywall") },
                                 onNavPrivacy = { nav.navigate("privacy") },
                                 onNavAntiTheft = { nav.navigate("antitheft") },
+                                onNavGuardianSync = { nav.navigate("guardian") },
                             )
+                        }
+                        composable("guardian") {
+                            GuardianSyncScreen(onBack = { nav.popBackStack() })
                         }
                         composable("paywall") {
                             PaywallScreen(

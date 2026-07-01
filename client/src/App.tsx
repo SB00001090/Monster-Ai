@@ -25,6 +25,7 @@ import EcosystemPage from "./pages/EcosystemPage";
 import MiniStudioPage from "./pages/MiniStudioPage";
 import DeployPage from "./pages/DeployPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
+import GuardianSyncPage from "./pages/GuardianSyncPage";
 import { BackendProvider } from "./contexts/BackendContext";
 
 import LoadingScreen from "./components/LoadingScreen";
@@ -170,6 +171,11 @@ function Router() {
       <Route path="/integrations">
         <DashboardLayout>
           <IntegrationsPage />
+        </DashboardLayout>
+      </Route>
+      <Route path="/guardian-sync">
+        <DashboardLayout>
+          <GuardianSyncPage />
         </DashboardLayout>
       </Route>
 

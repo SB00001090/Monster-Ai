@@ -2,6 +2,12 @@ import { app, BrowserWindow, ipcMain, Tray, Menu } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import isDev from 'electron-is-dev';
+import {
+  guardianVaultClear,
+  guardianVaultGetPassphrase,
+  guardianVaultSetPassphrase,
+  guardianVaultStatus,
+} from './guardianVault';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -179,6 +185,17 @@ ipcMain.handle('save-offline-data', async (_event, data) => {
     return false;
   }
 });
+
+// Monster Guardian AI — desktop vault key (OS keychain via safeStorage)
+ipcMain.handle('guardian-vault-status', async () => guardianVaultStatus());
+ipcMain.handle('guardian-vault-set-passphrase', async (_event, passphrase: string) =>
+  guardianVaultSetPassphrase(passphrase),
+);
+ipcMain.handle('guardian-vault-get-passphrase', async () => {
+  const p = await guardianVaultGetPassphrase();
+  return p ? { ok: true, length: p.length } : { ok: false };
+});
+ipcMain.handle('guardian-vault-clear', async () => guardianVaultClear());
 
 // 應用事件
 app.on('ready', () => {

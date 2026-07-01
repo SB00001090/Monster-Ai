@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useGuest } from "@/contexts/GuestContext";
+import OAuthProviderButtons from "@/components/OAuthProviderButtons";
 import LLMSettings from "./LLMSettings";
+import { useLocation } from "wouter";
 
 type SettingsTab = "profile" | "theme" | "llm" | "safety" | "account";
 
@@ -204,6 +206,8 @@ function SafetySection() {
 }
 
 function AccountSection({ user, isGuest }: { user: any; isGuest: boolean }) {
+  const [, setLocation] = useLocation();
+
   return (
     <Card>
       <CardHeader>
@@ -228,8 +232,9 @@ function AccountSection({ user, isGuest }: { user: any; isGuest: boolean }) {
                 <li>• 存儲空間有限</li>
               </ul>
             </div>
-            <Button className="w-full" onClick={() => toast.info("請使用頁面頂部的登入按鈕")}>
-              🔑 升級為正式帳號
+            <OAuthProviderButtons size="default" />
+            <Button className="w-full" variant="outline" onClick={() => setLocation("/login")}>
+              前往登入頁
             </Button>
           </div>
         ) : (
@@ -240,6 +245,14 @@ function AccountSection({ user, isGuest }: { user: any; isGuest: boolean }) {
                 您的所有數據都已安全保存。享受完整功能。
               </p>
             </div>
+
+            <Button
+              className="w-full"
+              variant="secondary"
+              onClick={() => setLocation("/guardian-sync")}
+            >
+              🛡️ Monster Guardian 雲端同步
+            </Button>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="p-3 rounded-lg border">

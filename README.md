@@ -36,6 +36,7 @@ A **local-first, open-source AI platform** — chat, roleplay, image generation,
 | **Monster Guardian AI** (E2E sync, OC fingerprint, error learning) | Working |
 | Cloudflare Tunnel + USB APK install (no Tailscale / QR) | Working |
 | Google / GitHub OAuth cloud sync | Working |
+| Guardian Sync UI (`/guardian-sync`) | Working |
 | Grok-supervised learning (`/api/guardian/learning/supervise`) | Working |
 
 ## Monster Guardian AI

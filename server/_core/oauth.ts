@@ -17,12 +17,30 @@ function getQueryParam(req: Request, key: string): string | undefined {
 export function registerOAuthRoutes(app: Express) {
   if (!ENV.isProduction) {
     app.get("/api/oauth/dev-login", async (req: Request, res: Response) => {
+      const provider = getQueryParam(req, "provider");
+      let openId = DEV_OPEN_ID;
+      let loginMethod = "dev";
+      let name = "Dev User";
+      let email = "dev@monster-ai.local";
+
+      if (provider === "google") {
+        openId = "dev_google_user";
+        loginMethod = "google";
+        name = "Dev Google User";
+        email = "dev-google@monster-ai.local";
+      } else if (provider === "github") {
+        openId = "dev_github_user";
+        loginMethod = "github";
+        name = "Dev GitHub User";
+        email = "dev-github@monster-ai.local";
+      }
+
       const devUser: User = {
         id: 1,
-        openId: DEV_OPEN_ID,
-        name: "Dev User",
-        email: "dev@monster-ai.local",
-        loginMethod: "dev",
+        openId,
+        name,
+        email,
+        loginMethod,
         role: "user",
         llmConfig: null,
         createdAt: new Date(),

@@ -1,8 +1,12 @@
 /** Monster Guardian AI client — re-exports from monsterApi. */
 import { monsterApi } from "./monsterApi";
 
-export type OAuthProvider = "google" | "github";
-export type SyncBundleType = "oc_cards" | "chat_sessions" | "preferences";
+export type { OAuthProvider } from "@/const";
+export type SyncBundleType =
+  | "oc_cards"
+  | "chat_sessions"
+  | "preferences"
+  | "training_vault";
 
 export const getGuardianStatus = () => monsterApi.guardianStatus();
 export const getGuardianDisclaimer = (locale = "zh-TW") =>
@@ -55,4 +59,16 @@ export function reportGuardianError(params: {
     context: params.context,
     source: params.source,
   });
+}
+
+export function listGuardianSync(provider: string, providerSub: string) {
+  return monsterApi.guardianSyncList(provider, providerSub);
+}
+
+export function exportGuardianTrainingVault() {
+  return monsterApi.guardianTrainingExport();
+}
+
+export function importGuardianTrainingVault(bundle: Record<string, unknown>) {
+  return monsterApi.guardianTrainingImport(bundle);
 }

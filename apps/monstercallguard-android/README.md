@@ -23,6 +23,7 @@ apps/monstercallguard-android/
 │   │   └── RemoteAnalyzer.kt        # Tunnel 深度分析
 │   ├── report/
 │   │   └── AnonymousReportBuilder.kt # 匿名 hash 回報
+│   ├── guardian/          # E2E 雲端同步（與 Web /guardian-sync 互通）
 │   ├── sync/
 │   │   ├── SyncScheduler.kt         # WorkManager 排程
 │   │   ├── ThreatDbSyncWorker.kt    # 威脅庫同步

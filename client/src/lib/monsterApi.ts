@@ -183,7 +183,7 @@ export const monsterApi = {
     provider: "google" | "github";
     provider_sub: string;
     passphrase: string;
-    bundle_type: "oc_cards" | "chat_sessions" | "preferences";
+    bundle_type: "oc_cards" | "chat_sessions" | "preferences" | "training_vault";
     payload: Record<string, unknown> | unknown[];
     device_id?: string;
   }) =>
@@ -196,11 +196,29 @@ export const monsterApi = {
     provider: "google" | "github";
     provider_sub: string;
     passphrase: string;
-    bundle_type: "oc_cards" | "chat_sessions" | "preferences";
+    bundle_type: "oc_cards" | "chat_sessions" | "preferences" | "training_vault";
   }) =>
     request<Record<string, unknown>>("/api/guardian/sync/download", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+
+  guardianSyncList: (provider: string, providerSub: string) =>
+    request<{
+      bundles: Array<{ type: string; uploaded_at: string; device_id?: string }>;
+      last_sync: string | null;
+      user_hash?: string;
+    }>(
+      `/api/guardian/sync/list?provider=${encodeURIComponent(provider)}&provider_sub=${encodeURIComponent(providerSub)}`,
+    ),
+
+  guardianTrainingExport: () =>
+    request<Record<string, unknown>>("/api/guardian/training/export"),
+
+  guardianTrainingImport: (bundle: Record<string, unknown>) =>
+    request<Record<string, unknown>>("/api/guardian/training/import", {
+      method: "POST",
+      body: JSON.stringify(bundle),
     }),
 
   guardianReportError: (body: {

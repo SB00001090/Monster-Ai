@@ -11,7 +11,9 @@ Developed by Suckbob | Monster Guardian AI
 - [ ] 雲端 sync `training_vault` bundle 為端到端密文
 - [ ] `GET /api/guardian/status` → `no_tailscale: true`, `no_qr_code: true`
 - [ ] `GET /api/guardian/disclaimer` 含「可能性無法退款」
-- [ ] Google / GitHub OAuth 登入後可 `sync/upload` + `sync/download`
+- [x] Google / GitHub OAuth 登入後可 `sync/upload` + `sync/download`（Web `/guardian-sync`）
+- [x] Android Guardian 同步畫面 + `GuardianSyncWorker`
+- [x] Electron `guardianVault` safeStorage 金鑰
 - [ ] 錯誤觸發 `errors/report` 回傳 `fix_suggestion` + `code_snippet`
 - [ ] `learning/supervise` 回傳 Grok `priorities`
 - [ ] `quality/gate` score < 0.70 → `fail`

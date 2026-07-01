@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 object SyncScheduler {
     private const val THREAT_SYNC = "callguard_threat_sync"
     private const val HEALTH_PROBE = "callguard_tunnel_health"
+    private const val GUARDIAN_SYNC = "guardian_e2e_sync"
 
     fun schedule(context: Context) {
         val network = Constraints.Builder()
@@ -37,6 +38,15 @@ object SyncScheduler {
             HEALTH_PROBE,
             ExistingPeriodicWorkPolicy.KEEP,
             health,
+        )
+
+        val guardian = PeriodicWorkRequestBuilder<GuardianSyncWorker>(12, TimeUnit.HOURS)
+            .setConstraints(network)
+            .build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            GUARDIAN_SYNC,
+            ExistingPeriodicWorkPolicy.KEEP,
+            guardian,
         )
     }
 }
