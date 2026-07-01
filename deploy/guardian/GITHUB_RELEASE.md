@@ -2,7 +2,7 @@
 
 **Developed by Suckbob | Guardian Ai**
 
-複製以下內容至 [GitHub Releases](https://github.com/SB00001090/Monster-Ai/releases) 建立新版本。
+複製以下內容至 [GitHub Releases](https://github.com/SB00001090/Guardian-Ai/releases) 建立新版本。
 
 ---
 

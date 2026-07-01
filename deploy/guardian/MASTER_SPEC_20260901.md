@@ -134,7 +134,7 @@ Error → client autoErrorReporter / Sentry
 
 ## 11. GitHub Repo 要點
 
-Repo：`SB00001090/Monster-Ai`
+Repo：`SB00001090/Guardian-Ai`
 
 README 需含：Guardian API 表 · 加密訓練說明 · Tunnel 部署 · 免責聲明連結 · 開發者標示
 
