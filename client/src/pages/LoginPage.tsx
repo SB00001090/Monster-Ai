@@ -47,7 +47,7 @@ export default function LoginPage() {
               className="w-20 h-20 rounded-2xl object-cover shadow-lg shadow-violet-500/20"
             />
           </div>
-          <CardTitle className="text-3xl font-bold">Monster Guardian AI</CardTitle>
+          <CardTitle className="text-3xl font-bold">Guardian Ai</CardTitle>
           <CardDescription className="mt-2">
             {t("common.welcome") || "本地優先 · 端到端加密雲端同步"}
           </CardDescription>

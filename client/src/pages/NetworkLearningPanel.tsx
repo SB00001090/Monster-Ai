@@ -45,7 +45,7 @@ export default function NetworkLearningPanel() {
       setDisclaimerSnippet(
         text.includes("自主網絡學習")
           ? "§7 自主網絡學習 · 預設關閉 · Grok 審批 · 無私人資料外傳"
-          : "Monster Guardian AI",
+          : "Guardian Ai",
       );
     } catch {
       setDisclaimerSnippet("Guardian API 離線");
@@ -110,7 +110,7 @@ export default function NetworkLearningPanel() {
     <NeonShell
       title="自主網絡學習"
       subtitle="Opt-in · Grok 監督 · 隱私防火牆 · 藝術分類強化"
-      badge="Developed by Suckbob | Monster Guardian AI"
+      badge="Developed by Suckbob | Guardian Ai"
     >
       <div className="grid lg:grid-cols-2 gap-4">
         <NeonPanel className="space-y-4">

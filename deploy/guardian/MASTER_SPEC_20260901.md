@@ -1,8 +1,8 @@
-# Monster Guardian AI — 主規格（2026/09/01）
+# Guardian Ai — 主規格（2026/09/01）
 
-**Developed by Suckbob | Monster Guardian AI**
+**Developed by Suckbob | Guardian Ai**
 
-前身：Monster AI + Monster Call Guard（CallGuard 已從 Web UI 取消，Tunnel/USB 仍保留）
+前身：Monster Guardian AI（**Call Guard 已完全移除**；遠端連線僅 Cloudflare Tunnel HTTPS 或 USB adb reverse）
 
 ---
 

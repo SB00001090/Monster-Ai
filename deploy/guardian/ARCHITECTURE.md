@@ -1,12 +1,12 @@
-# Monster Guardian AI — 系統架構
+# Guardian Ai — 系統架構
 
-Developed by Suckbob | Monster Guardian AI
+Developed by Suckbob | Guardian Ai
 
 ## 總覽
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Client (React / Android CallGuard / Discord Guard)                  │
+│  Client (React / Guardian Ai Android / Discord Guard)              │
 │  Google · GitHub OAuth │ AES vault key │ Ephemeral chat              │
 └───────────────────────────────┬─────────────────────────────────────┘
                                 │ HTTPS (Cloudflare Tunnel)

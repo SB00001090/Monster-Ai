@@ -193,7 +193,7 @@ export default function GuardianSyncPage() {
       <NeonShell
         title="Monster Guardian 雲端同步"
         subtitle="端到端加密 · Google / GitHub 身份驗證"
-        badge="Developed by Suckbob | Monster Guardian AI"
+        badge="Developed by Suckbob | Guardian Ai"
       >
         <NeonPanel className="space-y-4 max-w-md mx-auto text-center">
           <Shield className="w-10 h-10 mx-auto text-[var(--neon-cyan)]" />
@@ -214,7 +214,7 @@ export default function GuardianSyncPage() {
       <NeonShell
         title="Monster Guardian 雲端同步"
         subtitle="需要 Google 或 GitHub OAuth"
-        badge="Developed by Suckbob | Monster Guardian AI"
+        badge="Developed by Suckbob | Guardian Ai"
       >
         <NeonPanel className="space-y-4 max-w-lg mx-auto">
           <p className="text-sm text-[var(--neon-muted)]">
@@ -231,7 +231,7 @@ export default function GuardianSyncPage() {
     <NeonShell
       title="Monster Guardian 雲端同步"
       subtitle="OC 文案 · 對話 · 偏好 · 訓練 Vault — 全程端到端加密"
-      badge="Developed by Suckbob | Monster Guardian AI"
+      badge="Developed by Suckbob | Guardian Ai"
     >
       <div className="grid lg:grid-cols-2 gap-4">
         <NeonPanel className="space-y-4">

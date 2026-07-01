@@ -1,4 +1,4 @@
-"""Monster Guardian AI platform tests."""
+"""Guardian Ai platform tests."""
 from __future__ import annotations
 
 import json
@@ -42,10 +42,13 @@ def test_disclaimer_hardcoded():
     assert "可能性無法退款" in zh["text"]
     assert "自主網絡學習" in zh["text"]
     assert "Grok" in zh["text"]
-    assert zh["version"] == "guardian_v1"
+    assert "幼兒" in zh["text"]
+    assert zh["version"] == "guardian_ai_v1"
+    assert "toddler" in zh.get("toddler_notice", "").lower() or "幼兒" in zh.get("toddler_notice", "")
 
     en = get_disclaimer("en")
-    assert "Autonomous network learning" in en["text"]
+    assert "toddler" in en["text"].lower()
+    assert en["version"] == "guardian_ai_v1"
 
 
 def test_e2e_encrypt_roundtrip():

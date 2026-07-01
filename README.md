@@ -1,8 +1,12 @@
-# Monster AI
+# Guardian Ai
 
-A **local-first, open-source AI platform** — chat, roleplay, image generation, and more, running entirely on your machine.
+**Developed by Suckbob | Guardian Ai**
 
-> **Monster Guardian AI** — privacy-first security shell with E2E cloud sync (Google/GitHub), OC anti-plagiarism, auto error learning, and Grok-supervised evolution. See [`deploy/guardian/ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md). Developed by Suckbob | Monster Guardian AI.
+A **local-first, privacy-focused AI platform** — toddler-style progressive learning, multimodal generation (RP + image + video + audio), OC anti-plagiarism, encrypted training vault, and E2E cloud sync. Runs entirely on your machine.
+
+> **Call Guard has been fully removed.** Remote access uses **Cloudflare Tunnel HTTPS** or **USB `adb reverse`** only — no Tailscale, no QR codes, no LAN IP entry.
+
+See [`deploy/guardian/ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md) · [`MASTER_SPEC_20260901.md`](deploy/guardian/MASTER_SPEC_20260901.md)
 
 - Self-healing with automatic LLM fallback
 - Web UI (HTTP + WebSocket)
@@ -33,28 +37,44 @@ A **local-first, open-source AI platform** — chat, roleplay, image generation,
 | Full-auto code repair (watchdog + git) | Working |
 | MonsterGuard Discord bot (anti-scam) | Working |
 | Anti-collapse LoRA training (`train_image_quality_4060.py`) | Working |
-| **Monster Guardian AI** (E2E sync, OC fingerprint, error learning) | Working |
+| **Guardian Ai** (E2E sync, OC fingerprint, toddler learning, error learning) | Working |
 | Cloudflare Tunnel + USB APK install (no Tailscale / QR) | Working |
 | Google / GitHub OAuth cloud sync | Working |
 | Guardian Sync UI (`/guardian-sync`) | Working |
+| Network learning + art triage (`/network-learning`) | Working |
 | Grok-supervised learning (`/api/guardian/learning/supervise`) | Working |
+| Hardcoded disclaimer with toddler learning notice | Working |
 
-## Monster Guardian AI
+## Guardian Ai — Core APIs
 
 | API | Purpose |
 |-----|---------|
-| `GET /api/guardian/status` | Platform health |
-| `POST /api/guardian/sync/upload` | E2E encrypted OC/chat upload |
-| `POST /api/guardian/sync/download` | Cross-device restore |
+| `GET /api/guardian/disclaimer` | Hardcoded disclaimer (toddler notice, no refunds, cannot disable) |
+| `GET /api/guardian/status` | Platform health (`no_tailscale`, `no_qr_code`) |
+| `POST /api/guardian/sync/upload` | E2E encrypted OC/chat/training upload |
+| `POST /api/guardian/sync/download` | Cross-device restore (Google/GitHub + passphrase) |
 | `POST /api/guardian/errors/report` | Auto error + fix suggestions |
 | `POST /api/guardian/backstory/generate` | Enhanced OC backstory (fingerprint gate + multimodal) |
-| `POST /api/guardian/oc/protect` | OC fingerprint + watermark |
+| `POST /api/guardian/oc/protect` | OC fingerprint + `GDA-` watermark |
 | `GET /api/guardian/connection` | Tunnel URL + USB APK info |
-| `GET /api/guardian/training/status` | Encrypted training vault status |
+| `GET /api/guardian/training/status` | Encrypted training vault (`plaintext_forbidden`) |
 | `POST /api/guardian/training/migrate` | Encrypt legacy plaintext good/bad images |
-| `GET /api/guardian/training/export` | E2E encrypted training bundle for cloud sync |
+| `GET /api/guardian/network-learning/status` | Autonomous network learning (opt-in) |
+| `POST /api/guardian/quality/gate` | Quality gate — score &lt; 70% = failure |
 
-Docs: [`MASTER_SPEC_20260901.md`](deploy/guardian/MASTER_SPEC_20260901.md) · [`ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](deploy/guardian/LAUNCH_CHECKLIST.md)
+### Toddler-style learning
+
+Guardian Ai learns like a human toddler: gradual growth, positive encouragement, gentle correction. Grok supervises each learning cycle. Initial outputs may be imperfect — see the hardcoded disclaimer at `GET /api/guardian/disclaimer`.
+
+### Deploy & connect
+
+| Method | Command |
+|--------|---------|
+| Cloudflare Tunnel | `scripts\callguard\run-tunnel.bat` → paste HTTPS URL in app |
+| USB APK install | `scripts\callguard\install-apk-adb.ps1` + `adb reverse tcp:7860` |
+| Dify workflows | `deploy/dify/workflow_guardian.json` |
+
+Docs: [`MASTER_SPEC_20260901.md`](deploy/guardian/MASTER_SPEC_20260901.md) · [`ARCHITECTURE.md`](deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](deploy/guardian/LAUNCH_CHECKLIST.md) · [`ROADMAP_20260901.md`](deploy/guardian/ROADMAP_20260901.md)
 
 ## Requirements
 

@@ -1,8 +1,12 @@
-# Monster AI
+# Guardian Ai
 
-**本地優先、開源** 的 AI 平台 — 聊天、角色扮演、圖像生成等功能，全部在你的電腦上執行。
+**Developed by Suckbob | Guardian Ai**
 
-> **Monster Guardian AI** — 隱私優先的安全外殼，支援 E2E 雲端同步（Google/GitHub）、OC 防抄襲、自動錯誤學習，以及 Grok 監督式進化。詳見 [`deploy/guardian/ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md)。由 Suckbob | Monster Guardian AI 開發。
+**本地優先、隱私保護** 的 AI 平台 — 幼兒教育式漸進學習、多模態生成（RP + 圖片 + 影片 + 音訊）、OC 反抄襲、加密訓練庫、E2E 雲端同步，全部在你的電腦上執行。
+
+> **Call Guard 已完全移除。** 遠端連線僅支援 **Cloudflare Tunnel HTTPS** 或 **USB `adb reverse`** — 無 Tailscale、無 QR Code、無需輸入 LAN IP。
+
+詳見 [`deploy/guardian/ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) · [`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md)
 
 - 自我修復，自動 LLM 備援
 - Web UI（HTTP + WebSocket）
@@ -33,24 +37,26 @@
 | 全自動程式修復（watchdog + git） | 可用 |
 | MonsterGuard Discord 機器人（防詐騙） | 可用 |
 | 防崩潰 LoRA 訓練（`train_image_quality_4060.py`） | 可用 |
-| **Monster Guardian AI**（E2E 同步、OC 指紋、錯誤學習） | 可用 |
+| **Guardian Ai**（E2E 同步、OC 指紋、幼兒式學習、錯誤學習） | 可用 |
 | Cloudflare Tunnel + USB APK 安裝（無需 Tailscale / QR） | 可用 |
 | Google / GitHub OAuth 雲端同步 | 可用 |
 | Guardian 同步 UI（`/guardian-sync`） | 可用 |
 | Grok 監督式學習（`/api/guardian/learning/supervise`） | 可用 |
 | **自主網絡學習**（`/network-learning`、Grok 審批） | 可用 |
 | **藝術品質分診**（art triage，加密訓練庫） | 可用 |
+| 硬編碼免責聲明（含幼兒學習提醒） | 可用 |
 
-## Monster Guardian AI
+## Guardian Ai — 核心 API
 
 | API | 用途 |
 |-----|------|
-| `GET /api/guardian/status` | 平台健康狀態 |
-| `POST /api/guardian/sync/upload` | E2E 加密 OC/聊天上傳 |
+| `GET /api/guardian/disclaimer` | 硬編碼免責聲明（幼兒提醒、無法退款、不可關閉） |
+| `GET /api/guardian/status` | 平台健康狀態（`no_tailscale`、`no_qr_code`） |
+| `POST /api/guardian/sync/upload` | E2E 加密 OC/聊天/訓練上傳 |
 | `POST /api/guardian/sync/download` | 跨裝置還原 |
 | `POST /api/guardian/errors/report` | 自動錯誤回報 + 修復建議 |
 | `POST /api/guardian/backstory/generate` | 增強 OC 背景故事（指紋閘門 + 多模態） |
-| `POST /api/guardian/oc/protect` | OC 指紋 + 浮水印 |
+| `POST /api/guardian/oc/protect` | OC 指紋 + `GDA-` 浮水印 |
 | `GET /api/guardian/connection` | Tunnel URL + USB APK 資訊 |
 | `GET /api/guardian/training/status` | 加密訓練庫狀態 |
 | `POST /api/guardian/training/migrate` | 加密舊版明文 good/bad 圖像 |
@@ -61,8 +67,13 @@
 | `GET /api/guardian/network-learning/directives` | 近期 Grok 審批指令 |
 | `GET /api/guardian/network-learning/art-triage/status` | 藝術分診狀態 |
 | `POST /api/guardian/network-learning/art-triage/run` | 執行藝術品質分診 |
+| `POST /api/guardian/quality/gate` | 品質門檻 — 低於 70% 視為失敗 |
 
-文件：[`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md) · [`ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](../deploy/guardian/LAUNCH_CHECKLIST.md)
+### 幼兒教育式學習
+
+Guardian Ai 的學習系統設計為類似人類幼兒般逐步成長：由淺入深、正面鼓勵、溫和糾正。Grok 負責監督整個學習過程。
+
+文件：[`MASTER_SPEC_20260901.md`](../deploy/guardian/MASTER_SPEC_20260901.md) · [`ARCHITECTURE.md`](../deploy/guardian/ARCHITECTURE.md) · [`LAUNCH_CHECKLIST.md`](../deploy/guardian/LAUNCH_CHECKLIST.md) · [`GITHUB_RELEASE.md`](../deploy/guardian/GITHUB_RELEASE.md)
 
 ### 自主網絡學習（G5）
 

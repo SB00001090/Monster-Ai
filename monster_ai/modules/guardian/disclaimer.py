@@ -1,11 +1,24 @@
 """Hardcoded legal disclaimer — cannot be disabled or overridden by config."""
 from __future__ import annotations
 
-DEVELOPER = "Developed by Suckbob | Monster Guardian AI"
+DEVELOPER = "Developed by Suckbob | Guardian Ai"
 
-DISCLAIMER_ZH = f"""【Monster Guardian AI 免責聲明】
+TODDLER_NOTICE_ZH = (
+    "本應用程式之學習系統設計為類似人類幼兒般逐步成長，因此初期可能會出現錯誤或不準確之情況，"
+    "用戶應理解並自行判斷生成內容之適切性。"
+)
+
+TODDLER_NOTICE_EN = (
+    "Its learning system is designed similarly to a human toddler that learns and grows gradually. "
+    "Therefore, it may initially produce errors, inaccuracies, or imperfect results."
+)
+
+DISCLAIMER_ZH = f"""【Guardian Ai 免責聲明】
 
 {DEVELOPER}
+
+【幼兒式學習提醒】
+{TODDLER_NOTICE_ZH}
 
 1. **服務性質**
    - 本軟體為本地優先 AI 平台，生成內容僅供私人創作與娛樂。
@@ -19,17 +32,17 @@ DISCLAIMER_ZH = f"""【Monster Guardian AI 免責聲明】
 3. **隱私與雲端同步**
    - OC 文案與對話預設僅存本機（AES-256-GCM 加密）。
    - **訓練檔案（好圖／爛圖／模板／prompt／LoRA 資料）全面加密儲存**，禁止明文存放。
-   - 金鑰由用戶 passphrase 或裝置硬體指紋（MonsterLock / Android Keystore）綁定。
+   - 金鑰由用戶 passphrase 或裝置硬體指紋（GuardianLock / Android Keystore）綁定。
    - 雲端同步為**可選**；訓練檔案須先本機加密後才上傳（端到端）。
    - Google / GitHub 登入僅用於身份驗證，不解密您的內容。
 
 4. **OC 反抄襲**
-   - 角色指紋、浮水印與網絡學習保護預設啟用。
+   - 角色指紋、浮水印（GDA-）與網絡學習保護預設啟用。
    - 未經授權不得複製他人 OC 指紋或訓練資料。
 
 5. **安全保護**
    - 聊天區：加密儲存 + Ephemeral Chat + 反監聽提示。
-   - 防毒、反暗網、反監視模組依 CrimeGuard / CallGuard 規則運作。
+   - 防毒、反暗網、反監視模組依 CrimeGuard 規則運作。
    - 生成品質低於 70% 視為失敗並自動重試。
 
 6. **Likeness 與多模態**
@@ -42,11 +55,18 @@ DISCLAIMER_ZH = f"""【Monster Guardian AI 免責聲明】
    - 出站僅含匿名 topic ID 與聚合統計；藝術分類（好圖／爛圖／參考級）僅更新加密 vault metadata。
    - 可隨時撤銷同意以停止所有自主連線。
 
+8. **原始碼與智慧財產**
+   - **完整原始實作僅由開發者持有**；公開版本不含全部商業邏輯與訓練管線細節。
+
 使用本軟體即表示您已閱讀、理解並同意上述條款。"""
 
-DISCLAIMER_EN = f"""Monster Guardian AI — Disclaimer
+DISCLAIMER_EN = f"""Guardian Ai — Disclaimer
 
 {DEVELOPER}
+
+Toddler-style learning notice:
+{TODDLER_NOTICE_EN}
+Users should understand and judge the appropriateness of generated content themselves.
 
 1. Local-first AI for private creative use. NSFW descriptions are blurred in UI; output is your responsibility.
 
@@ -62,10 +82,24 @@ DISCLAIMER_EN = f"""Monster Guardian AI — Disclaimer
 
 7. Autonomous network learning is OFF by default. Only after explicit consent will scheduled public tech/art-quality learning run, with Grok approval per run. OC fingerprints, chat vault, and training plaintext never leave your device. Outbound data is anonymous topic IDs and aggregates only; art triage updates encrypted vault metadata. Revoke consent anytime.
 
+8. **Full original implementation is held by the developer only**; the public release does not include all commercial logic or training pipeline details.
+
 By using this software you accept these terms."""
 
 
 def get_disclaimer(locale: str = "zh-TW") -> dict[str, str]:
     if locale.startswith("en"):
-        return {"locale": "en", "text": DISCLAIMER_EN, "developer": DEVELOPER, "version": "guardian_v1"}
-    return {"locale": locale, "text": DISCLAIMER_ZH, "developer": DEVELOPER, "version": "guardian_v1"}
+        return {
+            "locale": "en",
+            "text": DISCLAIMER_EN,
+            "developer": DEVELOPER,
+            "version": "guardian_ai_v1",
+            "toddler_notice": TODDLER_NOTICE_EN,
+        }
+    return {
+        "locale": locale,
+        "text": DISCLAIMER_ZH,
+        "developer": DEVELOPER,
+        "version": "guardian_ai_v1",
+        "toddler_notice": TODDLER_NOTICE_ZH,
+    }

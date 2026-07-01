@@ -1,6 +1,6 @@
-# Monster Guardian AI 上架 Checklist
+# Guardian Ai 上架 Checklist
 
-Developed by Suckbob | Monster Guardian AI
+Developed by Suckbob | Guardian Ai
 
 ## 核心功能
 
