@@ -14,11 +14,13 @@ from monster_ai.modules.guardian.grok_supervisor import GrokSupervisor
 from monster_ai.modules.guardian.key_manager import TrainingKeyManager
 from monster_ai.modules.guardian.oc_fingerprint import OCFingerprintStore, embed_watermark, generate_fingerprint
 from monster_ai.modules.guardian.backstory import BackstoryGenerator
+from monster_ai.modules.guardian.network_learning import GuardianNetworkLearner
 from monster_ai.modules.guardian.training_vault import TrainingVault
 
 if TYPE_CHECKING:
     from monster_ai.core.self_repair import SelfRepairEngine
     from monster_ai.modules.learning.engine import LearningEngine
+    from monster_ai.modules.learning.web_knowledge import WebKnowledgeLearner
 
 
 class GuardianService:
@@ -50,6 +52,7 @@ class GuardianService:
             hardware_fingerprint=hardware_fingerprint,
         )
         self.training_vault: TrainingVault | None = None
+        self.network_learning: GuardianNetworkLearner | None = None
         if settings.training_encryption_enabled:
             self.training_vault = TrainingVault(root, self.key_manager)
             if settings.bind_hardware_key and not settings.require_user_passphrase:
@@ -75,7 +78,21 @@ class GuardianService:
             "connection_mode": "cloudflare_tunnel",
             "training_encryption": self.settings.training_encryption_enabled,
             "training_vault": self.training_vault.status() if self.training_vault else None,
+            "network_learning": (
+                self.network_learning.status()
+                if self.network_learning
+                else {"enabled": self.settings.network_learning.enabled}
+            ),
         }
+
+    def attach_network_learning(self, web_learner: WebKnowledgeLearner) -> None:
+        self.network_learning = GuardianNetworkLearner(
+            self.settings.network_learning,
+            data_dir=Path(self.settings.data_dir),
+            web_learner=web_learner,
+            supervisor=self.supervisor,
+            training_vault=self.training_vault,
+        )
 
     def unlock_training_vault(self, passphrase: str | None = None) -> dict[str, Any]:
         return self.key_manager.unlock(passphrase)

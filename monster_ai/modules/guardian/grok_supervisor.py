@@ -10,6 +10,12 @@ if TYPE_CHECKING:
     from monster_ai.core.self_repair import SelfRepairEngine
 
 
+from monster_ai.modules.guardian.privacy_firewall import topic_anonymous_id
+
+NETWORK_REVIEW_SYSTEM = """You are Grok approving Guardian autonomous network learning runs.
+Only approve public tech/news/art-quality topics. Deny any OC names, chat excerpts, or private paths.
+Output JSON only: {"approved":true|false,"topics":["..."],"reason":"..."}"""
+
 SUPERVISOR_SYSTEM = """You are Grok supervising Monster Guardian AI's learning system.
 Prioritize: (1) recurring errors, (2) user safety/privacy regressions, (3) quality below 70%.
 Avoid bias toward over-censorship — this is a local-first, user-owned platform.
@@ -21,6 +27,7 @@ class GrokSupervisor:
         self.root = data_dir / "grok_supervision"
         self.root.mkdir(parents=True, exist_ok=True)
         self.log_path = self.root / "directives.jsonl"
+        self.network_log_path = self.root / "network_directives.jsonl"
         self._repair = repair
 
     async def review(
@@ -106,6 +113,72 @@ class GrokSupervisor:
             text = await self._repair.chat(prompt, system=SUPERVISOR_SYSTEM, temperature=0.3)
             if text and "{" in text:
                 return text.strip()[:1500]
+        except Exception:  # noqa: BLE001
+            pass
+        return ""
+
+    async def review_network_learning(
+        self,
+        *,
+        topics: list[str],
+        window_ok: bool,
+        user_consented: bool,
+        max_topics: int = 3,
+    ) -> dict[str, Any]:
+        if not user_consented:
+            return self._network_denied("consent_required", topics)
+        if not window_ok:
+            return self._network_denied("outside_schedule_window", topics)
+
+        approved_topics = [t.strip() for t in topics if len(t.strip()) >= 3][:max_topics]
+        if not approved_topics:
+            return self._network_denied("no_topics", topics)
+
+        directive: dict[str, Any] = {
+            "supervisor": "grok",
+            "approved": True,
+            "topics": approved_topics,
+            "topic_ids": [topic_anonymous_id(t) for t in approved_topics],
+            "reason": "Rule-based approval — public topics only; no OC or vault data",
+            "bias_warnings": [
+                "Never include OC names, chat content, or training image paths in outbound requests",
+                "Outbound metrics must be anonymous aggregates only",
+            ],
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        llm_note = await self._llm_network_review(directive, approved_topics)
+        if llm_note:
+            directive["strategy_note"] = llm_note
+        with self.network_log_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(directive, ensure_ascii=False) + "\n")
+        return directive
+
+    def _network_denied(self, reason: str, topics: list[str]) -> dict[str, Any]:
+        return {
+            "supervisor": "grok",
+            "approved": False,
+            "topics": [],
+            "topic_ids": [topic_anonymous_id(t) for t in topics],
+            "reason": reason,
+            "reviewed_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    async def _llm_network_review(
+        self,
+        directive: dict[str, Any],
+        topics: list[str],
+    ) -> str:
+        if self._repair is None:
+            return ""
+        prompt = (
+            f"{NETWORK_REVIEW_SYSTEM}\n\n"
+            f"topics={json.dumps(topics, ensure_ascii=False)}\n"
+            f"directive={json.dumps(directive, ensure_ascii=False)}"
+        )
+        try:
+            text = await self._repair.chat(prompt, system=NETWORK_REVIEW_SYSTEM, temperature=0.2)
+            if text and "{" in text:
+                return text.strip()[:1200]
         except Exception:  # noqa: BLE001
             pass
         return ""

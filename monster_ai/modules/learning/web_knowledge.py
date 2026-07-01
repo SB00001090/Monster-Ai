@@ -90,8 +90,8 @@ class WebKnowledgeLearner:
         """Optional callable returning (allowed: bool, reason: str)."""
         self._network_allowed = guard
 
-    def _can_use_network(self) -> tuple[bool, str]:
-        if not self.settings.web_learning_enabled:
+    def _can_use_network(self, *, network_override: bool = False) -> tuple[bool, str]:
+        if not network_override and not self.settings.web_learning_enabled:
             return False, "web_learning_disabled"
         if self._network_allowed is not None:
             try:
@@ -242,8 +242,8 @@ class WebKnowledgeLearner:
                 )
         return out
 
-    async def search(self, query: str) -> dict[str, Any]:
-        allowed, reason = self._can_use_network()
+    async def search(self, query: str, *, network_override: bool = False) -> dict[str, Any]:
+        allowed, reason = self._can_use_network(network_override=network_override)
         if not allowed:
             return {"ok": False, "reason": reason, "results": []}
 
@@ -270,8 +270,8 @@ class WebKnowledgeLearner:
 
         return {"ok": True, "query": q, "results": deduped}
 
-    async def fetch_url(self, url: str) -> dict[str, Any]:
-        allowed, reason = self._can_use_network()
+    async def fetch_url(self, url: str, *, network_override: bool = False) -> dict[str, Any]:
+        allowed, reason = self._can_use_network(network_override=network_override)
         if not allowed:
             return {"ok": False, "reason": reason}
         parsed = urlparse(url)
@@ -284,7 +284,13 @@ class WebKnowledgeLearner:
         text = _strip_html(raw)[:8000]
         return {"ok": True, "url": url, "text": text}
 
-    async def learn(self, query: str, *, force_refresh: bool = False) -> dict[str, Any]:
+    async def learn(
+        self,
+        query: str,
+        *,
+        force_refresh: bool = False,
+        network_override: bool = False,
+    ) -> dict[str, Any]:
         topic_key = self._topic_key(query)
         if not force_refresh and self._cache_fresh(topic_key):
             self._stats["cache_hits"] += 1
@@ -297,7 +303,7 @@ class WebKnowledgeLearner:
                 "fact_count": len(local),
             }
 
-        search = await self.search(query)
+        search = await self.search(query, network_override=network_override)
         if not search.get("ok"):
             return search
 

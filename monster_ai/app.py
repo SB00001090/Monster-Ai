@@ -151,6 +151,7 @@ def _ensure_data_dirs() -> None:
         "guardian/training_vault/template",
         "guardian/training_vault/prompt",
         "guardian/training_vault/lora",
+        "guardian/network_learning",
     ):
         (Path("./data") / sub).mkdir(parents=True, exist_ok=True)
 
@@ -312,10 +313,14 @@ def create_app(settings: Settings) -> FastAPI:
     )
     learning.bind_image_learner(image_learner)
     guardian_svc.learning = learning
+    guardian_svc.attach_network_learning(learning.web)
 
     def _web_network_allowed() -> tuple[bool, str]:
         if crimeguard.state.network_locked:
             return False, "network_locked"
+        nl = guardian_svc.network_learning
+        if nl is not None and nl.is_active():
+            return nl.network_gate()
         return True, ""
 
     learning.web.set_network_guard(_web_network_allowed)

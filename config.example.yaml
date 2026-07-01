@@ -340,3 +340,11 @@ guardian:
   require_user_passphrase: false
   encrypt_quality_assets: true
   delete_plaintext_after_encrypt: true
+  network_learning:
+    enabled: false
+    require_grok_approval: true
+    schedule_windows:
+      - "02:00-05:00"
+    max_topics_per_run: 3
+    allow_anonymous_metrics: false
+    art_triage_enabled: true

@@ -62,6 +62,16 @@ class TrainingUnlockRequest(BaseModel):
     passphrase: str | None = Field(default=None, min_length=8)
 
 
+class NetworkLearningConsentRequest(BaseModel):
+    consented: bool = True
+    metrics: bool = False
+
+
+class NetworkLearningTriggerRequest(BaseModel):
+    force: bool = False
+    topics: list[str] | None = None
+
+
 class TrainingTextAssetRequest(BaseModel):
     label: str = Field(pattern=r"^(template|prompt|lora)$")
     name: str = Field(min_length=1)
@@ -74,6 +84,13 @@ def _guardian(request: Request):
     if svc is None or not svc.settings.enabled:
         raise HTTPException(503, "Monster Guardian AI disabled")
     return svc
+
+
+def _network_learning(request: Request):
+    svc = _guardian(request)
+    if svc.network_learning is None:
+        raise HTTPException(503, "Guardian network learning not initialized")
+    return svc.network_learning
 
 
 @router.get("/status")
@@ -245,6 +262,38 @@ async def training_import(bundle: dict[str, Any], request: Request) -> dict:
     svc = _guardian(request)
     payload = bundle.get("bundle", bundle)
     return svc.import_training_from_sync(payload)
+
+
+@router.get("/network-learning/status")
+async def network_learning_status(request: Request) -> dict:
+    nl = _network_learning(request)
+    return nl.status()
+
+
+@router.post("/network-learning/consent")
+async def network_learning_consent(
+    body: NetworkLearningConsentRequest,
+    request: Request,
+) -> dict:
+    nl = _network_learning(request)
+    if body.consented:
+        return nl.grant_consent(metrics=body.metrics)
+    return nl.revoke_consent()
+
+
+@router.post("/network-learning/trigger")
+async def network_learning_trigger(
+    body: NetworkLearningTriggerRequest,
+    request: Request,
+) -> dict:
+    nl = _network_learning(request)
+    return await nl.trigger(force=body.force, topics=body.topics)
+
+
+@router.get("/network-learning/directives")
+async def network_learning_directives(request: Request, limit: int = 5) -> dict:
+    nl = _network_learning(request)
+    return {"directives": nl.latest_directives(limit)}
 
 
 @router.get("/connection")

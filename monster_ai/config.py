@@ -472,6 +472,17 @@ class ProtectionSettings(BaseModel):
     callguard: CallGuardSettings = Field(default_factory=CallGuardSettings)
 
 
+class GuardianNetworkLearningSettings(BaseModel):
+    """Autonomous network learning — opt-in, Grok-supervised, privacy-first."""
+
+    enabled: bool = False
+    require_grok_approval: bool = True
+    schedule_windows: list[str] = Field(default_factory=lambda: ["02:00-05:00"])
+    max_topics_per_run: int = 3
+    allow_anonymous_metrics: bool = False
+    art_triage_enabled: bool = True
+
+
 class GuardianSettings(BaseModel):
     """Monster Guardian AI — cloud sync, OC protection, error learning."""
 
@@ -493,6 +504,9 @@ class GuardianSettings(BaseModel):
     require_user_passphrase: bool = False
     encrypt_quality_assets: bool = True
     delete_plaintext_after_encrypt: bool = True
+    network_learning: GuardianNetworkLearningSettings = Field(
+        default_factory=GuardianNetworkLearningSettings
+    )
 
 
 class Settings(BaseModel):
