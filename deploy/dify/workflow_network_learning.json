@@ -1,0 +1,97 @@
+{
+  "name": "MonsterGuardian_NetworkLearning",
+  "description": "Opt-in autonomous network learning — consent gate, Grok approval, art triage, privacy-first",
+  "developer": "Suckbob | Monster Guardian AI",
+  "variables": {
+    "MONSTER_TUNNEL_URL": "https://xxx.trycloudflare.com",
+    "FORCE_RUN": "false",
+    "CUSTOM_TOPICS": ""
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "inputs": ["user_consent", "force_run", "topics_json"]
+    },
+    {
+      "id": "disclaimer_gate",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/disclaimer?locale=zh-TW",
+      "note": "§7 自主網絡學習免責 — 硬編碼不可關閉"
+    },
+    {
+      "id": "network_status",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/network-learning/status"
+    },
+    {
+      "id": "consent_branch",
+      "type": "if-else",
+      "condition": "{{user_consent}} == true OR {{network_status.user_consented}} == true",
+      "note": "未同意則中止 — opt-in only"
+    },
+    {
+      "id": "grant_consent",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/network-learning/consent",
+      "body": { "consented": true, "metrics": false },
+      "condition": "{{user_consent}} == true AND {{network_status.user_consented}} != true"
+    },
+    {
+      "id": "trigger_learning",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/network-learning/trigger",
+      "body": {
+        "force": "{{force_run}}",
+        "topics": "{{topics_json}}"
+      },
+      "note": "Grok review_network_learning inside API — no private data outbound"
+    },
+    {
+      "id": "art_triage_run",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/network-learning/art-triage/run",
+      "condition": "{{trigger_learning.ok}} == true AND {{network_status.art_triage_enabled}} == true"
+    },
+    {
+      "id": "fetch_directives",
+      "type": "http-request",
+      "method": "GET",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/network-learning/directives?limit=5"
+    },
+    {
+      "id": "grok_supervise",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/learning/supervise",
+      "note": "Post-run Grok supervision priorities"
+    },
+    {
+      "id": "error_report",
+      "type": "http-request",
+      "method": "POST",
+      "url": "{{MONSTER_TUNNEL_URL}}/api/guardian/errors/report",
+      "condition": "on_failure",
+      "body": {
+        "error_type": "NetworkLearningWorkflowError",
+        "message": "{{error_context}}",
+        "source": "dify_network_learning"
+      }
+    }
+  ],
+  "privacy": {
+    "opt_in_default_off": true,
+    "require_grok_approval": true,
+    "deny_oc_fingerprint_export": true,
+    "deny_chat_vault_export": true,
+    "deny_training_plaintext_export": true,
+    "outbound_anonymous_only": true,
+    "no_tailscale": true,
+    "no_qr_code": true
+  }
+}

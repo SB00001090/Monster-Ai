@@ -163,3 +163,11 @@ def test_guardian_status_includes_network_learning(client):
     r = client.get("/api/guardian/status")
     assert r.status_code == 200
     assert "network_learning" in r.json()
+
+
+def test_disclaimer_section7_network_learning():
+    from monster_ai.modules.guardian.disclaimer import get_disclaimer
+
+    zh = get_disclaimer("zh-TW")
+    assert "7." in zh["text"]
+    assert "預設關閉" in zh["text"]

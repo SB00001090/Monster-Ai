@@ -232,6 +232,35 @@ export const monsterApi = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  guardianNetworkLearningStatus: () =>
+    request<Record<string, unknown>>("/api/guardian/network-learning/status"),
+
+  guardianNetworkLearningConsent: (body: { consented: boolean; metrics?: boolean }) =>
+    request<Record<string, unknown>>("/api/guardian/network-learning/consent", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  guardianNetworkLearningTrigger: (body: { force?: boolean; topics?: string[] | null }) =>
+    request<Record<string, unknown>>("/api/guardian/network-learning/trigger", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  guardianNetworkLearningDirectives: (limit = 5) =>
+    request<{ directives: Array<Record<string, unknown>> }>(
+      `/api/guardian/network-learning/directives?limit=${limit}`,
+    ),
+
+  guardianArtTriageStatus: () =>
+    request<Record<string, unknown>>("/api/guardian/network-learning/art-triage/status"),
+
+  guardianArtTriageRun: () =>
+    request<Record<string, unknown>>("/api/guardian/network-learning/art-triage/run", {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
 };
 
 export function monsterWsUrl(path = "/ws"): string {

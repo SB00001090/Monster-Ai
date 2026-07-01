@@ -40,7 +40,12 @@ def test_disclaimer_hardcoded():
     zh = get_disclaimer("zh-TW")
     assert DEVELOPER in zh["text"]
     assert "可能性無法退款" in zh["text"]
+    assert "自主網絡學習" in zh["text"]
+    assert "Grok" in zh["text"]
     assert zh["version"] == "guardian_v1"
+
+    en = get_disclaimer("en")
+    assert "Autonomous network learning" in en["text"]
 
 
 def test_e2e_encrypt_roundtrip():

@@ -1,7 +1,8 @@
 /** Monster Guardian AI client — re-exports from monsterApi. */
 import { monsterApi } from "./monsterApi";
+import type { OAuthProvider } from "@/const";
 
-export type { OAuthProvider } from "@/const";
+export type { OAuthProvider };
 export type SyncBundleType =
   | "oc_cards"
   | "chat_sessions"
@@ -72,3 +73,21 @@ export function exportGuardianTrainingVault() {
 export function importGuardianTrainingVault(bundle: Record<string, unknown>) {
   return monsterApi.guardianTrainingImport(bundle);
 }
+
+export const getNetworkLearningStatus = () =>
+  monsterApi.guardianNetworkLearningStatus();
+
+export const postNetworkLearningConsent = (consented: boolean, metrics = false) =>
+  monsterApi.guardianNetworkLearningConsent({ consented, metrics });
+
+export const postNetworkLearningTrigger = (body: {
+  force?: boolean;
+  topics?: string[];
+}) => monsterApi.guardianNetworkLearningTrigger(body);
+
+export const getNetworkLearningDirectives = (limit = 5) =>
+  monsterApi.guardianNetworkLearningDirectives(limit);
+
+export const getArtTriageStatus = () => monsterApi.guardianArtTriageStatus();
+
+export const postArtTriageRun = () => monsterApi.guardianArtTriageRun();

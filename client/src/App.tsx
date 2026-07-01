@@ -26,6 +26,7 @@ import MiniStudioPage from "./pages/MiniStudioPage";
 import DeployPage from "./pages/DeployPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
 import GuardianSyncPage from "./pages/GuardianSyncPage";
+import NetworkLearningPanel from "./pages/NetworkLearningPanel";
 import { BackendProvider } from "./contexts/BackendContext";
 
 import LoadingScreen from "./components/LoadingScreen";
@@ -176,6 +177,11 @@ function Router() {
       <Route path="/guardian-sync">
         <DashboardLayout>
           <GuardianSyncPage />
+        </DashboardLayout>
+      </Route>
+      <Route path="/network-learning">
+        <DashboardLayout>
+          <NetworkLearningPanel />
         </DashboardLayout>
       </Route>
 

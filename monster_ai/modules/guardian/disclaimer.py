@@ -36,6 +36,12 @@ DISCLAIMER_ZH = f"""【Monster Guardian AI 免責聲明】
    - 圖片／影片／音訊 likeness 僅限您擁有權利或已授權之參考。
    - 您對所有生成內容負全部法律責任。
 
+7. **自主網絡學習（預設關閉）**
+   - 僅在您明確同意後，系統才會在排程視窗內連接公開網絡學習技術新聞與繪畫品質知識。
+   - Grok 監督層須審批每次學習主題；OC 指紋、聊天 vault、訓練明文永不外傳。
+   - 出站僅含匿名 topic ID 與聚合統計；藝術分類（好圖／爛圖／參考級）僅更新加密 vault metadata。
+   - 可隨時撤銷同意以停止所有自主連線。
+
 使用本軟體即表示您已閱讀、理解並同意上述條款。"""
 
 DISCLAIMER_EN = f"""Monster Guardian AI — Disclaimer
@@ -53,6 +59,8 @@ DISCLAIMER_EN = f"""Monster Guardian AI — Disclaimer
 5. Chat vault encryption, ephemeral mode, anti-surveillance hooks. Quality below 70% counts as failure.
 
 6. Likeness/multimodal features require authorized references only.
+
+7. Autonomous network learning is OFF by default. Only after explicit consent will scheduled public tech/art-quality learning run, with Grok approval per run. OC fingerprints, chat vault, and training plaintext never leave your device. Outbound data is anonymous topic IDs and aggregates only; art triage updates encrypted vault metadata. Revoke consent anytime.
 
 By using this software you accept these terms."""
 
