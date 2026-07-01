@@ -278,7 +278,7 @@ protection:
     public_comment_board: false
     data_dir: "./data/callguard"
     hk_hotline: "18222"
-    github_releases_page: "https://github.com/Suckbob/monster-ai/releases/latest"
+    github_releases_page: "https://github.com/SB00001090/Monster-Ai/releases/latest"
     apk_download_url: ""
   firewall:
     enabled: true

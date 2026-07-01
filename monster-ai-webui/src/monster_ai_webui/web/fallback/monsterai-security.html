@@ -121,8 +121,8 @@
     function renderApkBlock(el, m) {
       if (!el || !m) return;
       const ver = m.app_version || '1.2.0';
-      const url = m.apk_url || 'https://github.com/Suckbob/monster-ai/releases/download/v' + ver + '/MonsterCallGuard-v' + ver + '-signed.apk';
-      const releases = m.releases_page || 'https://github.com/Suckbob/monster-ai/releases/latest';
+      const url = m.apk_url || 'https://github.com/SB00001090/Monster-Ai/releases/download/v' + ver + '/MonsterCallGuard-v' + ver + '-signed.apk';
+      const releases = m.releases_page || 'https://github.com/SB00001090/Monster-Ai/releases/latest';
       const sha = (m.apk_sha256 || '').slice(0, 16);
       el.innerHTML = `
         <div class="flex flex-col gap-4">

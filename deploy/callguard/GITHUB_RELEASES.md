@@ -24,16 +24,16 @@ scripts\callguard\publish-github-release.ps1 -Version 1.2.0
 
 ## 下載連結
 
-- **Releases 頁：** https://github.com/Suckbob/monster-ai/releases/latest
+- **Releases 頁：** https://github.com/SB00001090/Monster-Ai/releases/latest
 - **直接下載：**  
-  `https://github.com/Suckbob/monster-ai/releases/download/v1.2.0/MonsterCallGuard-v1.2.0-signed.apk`
+  `https://github.com/SB00001090/Monster-Ai/releases/download/v1.2.0/MonsterCallGuard-v1.2.0-signed.apk`
 
 ## config.yaml
 
 ```yaml
 protection:
   callguard:
-    github_releases_page: https://github.com/Suckbob/monster-ai/releases/latest
+    github_releases_page: https://github.com/SB00001090/Monster-Ai/releases/latest
     # 留空則自動從 github_releases_page 推導 apk_download_url
     apk_download_url: ""
 ```

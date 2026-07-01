@@ -121,8 +121,8 @@ try {
         apk = $apkName
         sha256 = $hash
         github_tag = "v$version"
-        apk_url = "https://github.com/Suckbob/monster-ai/releases/download/v$version/$apkName"
-        releases_page = "https://github.com/Suckbob/monster-ai/releases/latest"
+        apk_url = "https://github.com/SB00001090/Monster-Ai/releases/download/v$version/$apkName"
+        releases_page = "https://github.com/SB00001090/Monster-Ai/releases/latest"
         qr_code = $false
         connection = "cloudflare_tunnel"
     } | ConvertTo-Json | Set-Content $manifestPath -Encoding UTF8

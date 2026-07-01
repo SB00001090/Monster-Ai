@@ -101,7 +101,7 @@ scripts\callguard\publish-github-release.ps1 -Version 1.2.0
 ### 下載連結格式
 
 ```
-https://github.com/Suckbob/monster-ai/releases/download/v1.2.0/MonsterCallGuard-v1.2.0-signed.apk
+https://github.com/SB00001090/Monster-Ai/releases/download/v1.2.0/MonsterCallGuard-v1.2.0-signed.apk
 ```
 
 **唔使用 QR Code** — 用戶從 Releases 頁面手動下載，避免 URL 洩露。
@@ -168,7 +168,7 @@ protection:
   callguard:
     connection_mode: cloudflare_tunnel
     tunnel_url_file: ./data/callguard/tunnel_url.txt
-    github_releases_page: https://github.com/Suckbob/monster-ai/releases/latest
+    github_releases_page: https://github.com/SB00001090/Monster-Ai/releases/latest
 ```
 
 ---

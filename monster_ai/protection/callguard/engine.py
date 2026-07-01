@@ -252,7 +252,7 @@ class CallGuardEngine:
             "apk_url": resolved_url,
             "apk_filename": filename,
             "apk_sha256": resolved_sha,
-            "releases_page": releases or "https://github.com/Suckbob/monster-ai/releases/latest",
+            "releases_page": releases or "https://github.com/SB00001090/Monster-Ai/releases/latest",
             "changelog": changelog,
             "threat_db_version": self.state.threat_db_version,
             "package": "ai.monster.callguard",

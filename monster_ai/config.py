@@ -429,7 +429,7 @@ class CallGuardSettings(BaseModel):
     public_comment_board: bool = False
     hk_hotline: str = "18222"
     apk_download_url: str = ""
-    github_releases_page: str = "https://github.com/Suckbob/monster-ai/releases/latest"
+    github_releases_page: str = "https://github.com/SB00001090/Monster-Ai/releases/latest"
 
 
 class CrimeGuardSettings(BaseModel):

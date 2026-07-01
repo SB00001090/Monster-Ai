@@ -1,7 +1,7 @@
 # 上傳 MonsterCallGuard APK 至 GitHub Releases（無 QR Code）
 param(
     [string]$Version = "1.2.0",
-    [string]$Repo = "Suckbob/monster-ai",
+    [string]$Repo = "SB00001090/Monster-Ai",
     [string]$ProjectRoot = "",
     [switch]$Draft
 )

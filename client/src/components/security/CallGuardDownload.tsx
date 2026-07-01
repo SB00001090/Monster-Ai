@@ -5,7 +5,7 @@ import { Download, ChevronDown, ChevronUp, Smartphone, Wifi, ExternalLink } from
 import type { AppManifest } from "@/hooks/useSecurityStatus";
 
 const DEFAULT_GITHUB_RELEASES =
-  "https://github.com/Suckbob/monster-ai/releases/latest";
+  "https://github.com/SB00001090/Monster-Ai/releases/latest";
 
 interface Props {
   manifest: AppManifest | null;
@@ -20,7 +20,7 @@ export default function CallGuardDownload({ manifest, compact = false }: Props) 
   const version = manifest?.app_version || "1.2.0";
   const apkUrl =
     manifest?.apk_url ||
-    `https://github.com/Suckbob/monster-ai/releases/download/v${version}/MonsterCallGuard-v${version}-signed.apk`;
+    `https://github.com/SB00001090/Monster-Ai/releases/download/v${version}/MonsterCallGuard-v${version}-signed.apk`;
   const releasesUrl = manifest?.releases_page || DEFAULT_GITHUB_RELEASES;
   const sha = manifest?.apk_sha256 || "";
   const shaShort = sha ? `${sha.slice(0, 16)}…` : "—";
