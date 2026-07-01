@@ -42,11 +42,6 @@
       <div class="px-3 py-2 rounded-lg">Image Test</div>
     </div>
     <div class="p-3 border-t border-cyber-border">
-      <a id="apk-link-side" href="/downloads/MonsterCallGuard-v1.0.8-signed.apk" class="flex items-center gap-2 text-sm text-blue-400 hover:underline">
-        📱 CallGuard <span id="apk-ver-side">v1.0.8</span>
-      </a>
-    </div>
-    <div class="p-3 border-t border-cyber-border">
       <div class="flex gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
         <input type="text" placeholder="問 MonsterAI..." class="flex-1 bg-transparent text-sm outline-none" />
         <button class="text-blue-400">➤</button>
@@ -81,7 +76,6 @@
         <div class="p-6 rounded-xl bg-cyber-card border border-white/10 hover:border-blue-500/40 cursor-pointer">✨ 創建角色</div>
       </div>
       <button class="rounded-full bg-blue-600 px-8 py-3 font-semibold mb-10">Start Chatting Now</button>
-      <div id="apk-welcome" class="w-full max-w-3xl p-5 rounded-xl bg-cyber-card border border-violet-500/20"></div>
     </section>
 
     <!-- 安全中心 -->
@@ -98,13 +92,11 @@
         <h3 class="font-semibold mb-3 text-sm">最近匿名舉報</h3>
         <div id="reports-table" class="text-xs overflow-x-auto"></div>
       </div>
-      <div id="apk-security" class="p-5 rounded-xl bg-cyber-card border border-violet-500/20"></div>
     </section>
   </main>
 
   <script>
     let snapshot = null;
-    let manifest = null;
 
     function showView(name) {
       document.getElementById('view-welcome').classList.toggle('hidden', name !== 'welcome');
@@ -118,40 +110,9 @@
       return 'dot-ok';
     }
 
-    function renderApkBlock(el, m) {
-      if (!el || !m) return;
-      const ver = m.app_version || '1.2.0';
-      const url = m.apk_url || 'https://github.com/SB00001090/Monster-Ai/releases/download/v' + ver + '/MonsterCallGuard-v' + ver + '-signed.apk';
-      const releases = m.releases_page || 'https://github.com/SB00001090/Monster-Ai/releases/latest';
-      const sha = (m.apk_sha256 || '').slice(0, 16);
-      el.innerHTML = `
-        <div class="flex flex-col gap-4">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold">📱 MonsterCallGuard v${ver}</h3>
-            <p class="text-xs text-gray-500">Developed by Suckbob | Monster AI Call Guard</p>
-            <p class="text-sm text-gray-400 mt-1">香港來電反制 · 收數拒接 · Cloudflare Tunnel 連線</p>
-            <p class="text-xs text-gray-500 mt-2 font-mono">SHA256: ${sha}…</p>
-            <p class="text-xs text-gray-500 mt-1">${m.changelog || ''}</p>
-            <div class="flex flex-wrap gap-2 mt-3">
-              <a href="${url}" class="inline-block rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold" rel="noopener">下載 APK</a>
-              <a href="${releases}" class="inline-block rounded-full border border-blue-500 px-5 py-2 text-sm" target="_blank" rel="noopener">GitHub Releases</a>
-            </div>
-            <details class="mt-3 text-xs text-gray-400"><summary class="cursor-pointer text-blue-400">側載安裝教學</summary>
-              <ol class="mt-2 list-decimal list-inside space-y-1">
-                <li>從 GitHub Releases 下載，比對 SHA256</li>
-                <li>設定 → 允許未知來源</li>
-                <li>設為預設來電篩選 App</li>
-                <li>手動貼上 Cloudflare Tunnel URL（唔使 IP、唔用 QR）</li>
-              </ol>
-            </details>
-          </div>
-        </div>`;
-    }
-
     function renderUI() {
       const ml = snapshot?.monsterlock || {};
       const cg = snapshot?.crimeguard || {};
-      const call = snapshot?.callguard || {};
       const dc = dotClass(cg);
       document.getElementById('sidebar-dot').className = 'w-2 h-2 rounded-full ml-auto ' + dc;
       document.getElementById('nav-dot').className = 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ' + dc;
@@ -161,15 +122,13 @@
         ['CrimeGuard', cg.network_locked ? '已鎖定' : '正常'],
         ['設備聯繫', cg.device_contact_detected ? (cg.device_contact_type || '偵測') : '無'],
         ['網絡鎖定', cg.network_locked ? cg.lock_mode : '未鎖定'],
-        ['收數防護', call.rejects_today ? '拒接 ' + call.rejects_today : '待命'],
       ];
       document.getElementById('sidebar-rows').innerHTML = rows.map(([l, d]) =>
         `<div class="flex justify-between px-2 py-1"><span>${l}</span><span>${d}</span></div>`).join('');
 
-      const threat = (call.rejects_today || 0) + (call.reports_today || 0) + (cg.locks_triggered || 0);
+      const threat = cg.locks_triggered || 0;
       document.getElementById('threat-stats').innerHTML = [
-        ['今日威脅', threat], ['拒接', call.rejects_today || 0],
-        ['舉報', call.reports_today || 0], ['鎖定', cg.locks_triggered || 0],
+        ['今日威脅', threat], ['阻擋', cg.blocks || 0], ['鎖定', cg.locks_triggered || 0],
       ].map(([l, v]) => `<div class="p-3 rounded-xl bg-white/5 text-center"><div class="text-2xl font-bold">${v}</div><div class="text-xs text-gray-500">${l}</div></div>`).join('');
 
       const cards = [
@@ -177,7 +136,6 @@
         ['CrimeGuard', cg.network_locked ? '已鎖定' : '監控中', `阻擋 ${cg.blocks || 0}`],
         ['設備聯繫', cg.device_contact_detected ? '警示' : '正常', cg.device_contact_type || '無'],
         ['網絡鎖定', cg.network_locked ? 'ACTIVE' : '待命', cg.vpn_detected ? 'VPN 偵測' : '無 VPN'],
-        ['收數防護', call.red_dot ? '警示' : '正常', `熱線 ${call.hk_hotline || '18222'}`],
       ];
       document.getElementById('status-cards').innerHTML = cards.map(([t, s, d]) =>
         `<div class="p-4 rounded-xl bg-cyber-card border border-white/10"><div class="flex justify-between mb-2"><span class="font-semibold text-sm">${t}</span><span class="text-xs text-blue-400">${s}</span></div><p class="text-xs text-gray-500">${d}</p></div>`).join('');
@@ -187,26 +145,9 @@
 
     async function poll() {
       try {
-        const [st, mf, rp] = await Promise.all([
-          fetch('/api/security/status').then(r => r.json()),
-          fetch('/api/callguard/app-manifest').then(r => r.json()),
-          fetch('/api/callguard/reports?limit=10').then(r => r.json()).catch(() => ({ reports: [] })),
-        ]);
-        snapshot = st;
-        manifest = mf;
-        if (mf.app_version) {
-          document.getElementById('apk-ver-side').textContent = 'v' + mf.app_version;
-          document.getElementById('apk-link-side').href = mf.apk_url || document.getElementById('apk-link-side').href;
-        }
+        snapshot = await fetch('/api/security/status').then(r => r.json());
         renderUI();
-        renderApkBlock(document.getElementById('apk-welcome'), mf);
-        renderApkBlock(document.getElementById('apk-security'), mf);
-        const reports = rp.reports || [];
-        document.getElementById('reports-table').innerHTML = reports.length ? (
-          '<table class="w-full"><tr class="text-gray-500"><th class="text-left py-1">類別</th><th class="text-left">Hash</th><th class="text-right">分</th></tr>' +
-          reports.map(r => `<tr><td class="py-1">${r.category}</td><td class="font-mono">${(r.number_hash||'').slice(0,8)}…</td><td class="text-right">${r.score}</td></tr>`).join('') +
-          '</table>'
-        ) : '<p class="text-gray-500">尚無舉報</p>';
+        document.getElementById('reports-table').innerHTML = '<p class="text-gray-500">—</p>';
       } catch (e) { console.warn('poll', e); }
     }
 

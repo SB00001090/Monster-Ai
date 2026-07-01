@@ -268,7 +268,7 @@ protection:
     data_dir: "./data/crimeguard"
     rules_sync_url: ""
   callguard:
-    enabled: true
+    enabled: false
     auto_reject_threshold: 85
     connection_mode: cloudflare_tunnel
     tunnel_url_env: MONSTER_TUNNEL_URL

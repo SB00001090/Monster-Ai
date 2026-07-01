@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import SecurityStatusBar from "@/components/security/SecurityStatusBar";
 import SecurityCenter from "@/components/security/SecurityCenter";
-import CallGuardDownload from "@/components/security/CallGuardDownload";
+
 import SafeModeToggle from "@/components/security/SafeModeToggle";
 import { useSecurityStatus } from "@/hooks/useSecurityStatus";
 import { toast } from "sonner";
@@ -395,8 +395,6 @@ export default function ChatPage() {
         ))}
       </div>
 
-      <CallGuardDownload manifest={security.manifest} compact />
-
       <div className="p-3 border-t border-border/60">
         <div className="flex gap-2 items-center rounded-xl bg-muted/30 border border-border/50 px-3 py-2">
           <Input
@@ -470,9 +468,6 @@ export default function ChatPage() {
         {t("chatPage.startChattingNow")}
       </Button>
 
-      <div className="w-full max-w-3xl mt-10">
-        <CallGuardDownload manifest={security.manifest} />
-      </div>
     </div>
   );
 
@@ -609,8 +604,6 @@ export default function ChatPage() {
         {showSecurity ? (
           <SecurityCenter
             snapshot={security.snapshot}
-            manifest={security.manifest}
-            reports={security.reports}
             threatCount={security.threatCount}
             locking={security.locking}
             onLock={() => void security.triggerLock()}

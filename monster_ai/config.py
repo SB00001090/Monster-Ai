@@ -245,7 +245,7 @@ class GuardSettings(BaseModel):
     monster_ai_consent_required: bool = True
     mtls_cert_path: str = ""
     mtls_key_path: str = ""
-    callguard_bridge_enabled: bool = True
+    callguard_bridge_enabled: bool = False
     callguard_poll_interval_seconds: int = 15
     callguard_alert_score_threshold: int = 70
     trial_reminder_enabled: bool = False
@@ -413,7 +413,7 @@ class MonsterLockSettings(BaseModel):
 
 
 class CallGuardSettings(BaseModel):
-    enabled: bool = True
+    enabled: bool = False
     locale: str = "zh-HK"
     llm_analysis_enabled: bool = True
     auto_reject_threshold: int = 85

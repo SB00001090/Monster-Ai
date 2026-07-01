@@ -32,8 +32,6 @@ function rowStatus(
 export default function SecurityStatusBar({ snapshot, onOpenSecurity }: Props) {
   const ml = snapshot?.monsterlock;
   const cg = snapshot?.crimeguard;
-  const call = snapshot?.callguard;
-
   const rows = [
     {
       label: "MonsterShield",
@@ -58,11 +56,6 @@ export default function SecurityStatusBar({ snapshot, onOpenSecurity }: Props) {
       label: "網絡鎖定",
       status: cg?.network_locked ? "locked" : "ok",
       detail: cg?.network_locked ? cg.lock_mode || "active" : "未鎖定",
-    },
-    {
-      label: "收數防護",
-      status: rowStatus(!!call?.enabled, !!call?.green_dot, !!call?.red_dot),
-      detail: call?.rejects_today ? `拒接 ${call.rejects_today}` : "待命",
     },
   ] as const;
 

@@ -14,14 +14,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Lock, Shield, Phone, Wifi, Usb, Loader2 } from "lucide-react";
-import type { AnonymousReport, AppManifest, SecuritySnapshot } from "@/hooks/useSecurityStatus";
-import CallGuardDownload from "./CallGuardDownload";
+import { Lock, Shield, Wifi, Usb, Loader2 } from "lucide-react";
+import type { SecuritySnapshot } from "@/hooks/useSecurityStatus";
 
 interface Props {
   snapshot: SecuritySnapshot | null;
-  manifest: AppManifest | null;
-  reports: AnonymousReport[];
   threatCount: number;
   locking: boolean;
   onLock: () => void;
@@ -58,8 +55,6 @@ function StatusCard({
 
 export default function SecurityCenter({
   snapshot,
-  manifest,
-  reports,
   threatCount,
   locking,
   onLock,
@@ -69,10 +64,6 @@ export default function SecurityCenter({
   const [recoverToken, setRecoverToken] = useState("");
   const ml = snapshot?.monsterlock;
   const cg = snapshot?.crimeguard;
-  const call = snapshot?.callguard;
-
-  const formatTs = (ts: number) =>
-    ts ? new Date(ts * 1000).toLocaleString("zh-HK") : "—";
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -83,7 +74,7 @@ export default function SecurityCenter({
             安全中心
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            MonsterShield · CrimeGuard · MonsterCallGuard 即時狀態
+            MonsterShield · CrimeGuard 即時狀態
           </p>
         </div>
         <Button variant="outline" size="sm" className="rounded-full" onClick={onBack}>
@@ -91,11 +82,10 @@ export default function SecurityCenter({
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
           { label: "今日威脅", value: threatCount },
-          { label: "拒接來電", value: call?.rejects_today ?? 0 },
-          { label: "匿名舉報", value: call?.reports_today ?? 0 },
+          { label: "阻擋", value: cg?.blocks ?? 0 },
           { label: "鎖定觸發", value: cg?.locks_triggered ?? 0 },
         ].map((s) => (
           <Card key={s.label} className="p-3 text-center border-violet-500/15 bg-muted/20">
@@ -147,16 +137,6 @@ export default function SecurityCenter({
           <p>VPN 偵測：{cg?.vpn_detected ? cg.vpn_type || "是" : "否"}</p>
           <p>即使 VPN 亦有效（block_vpn_ports）</p>
         </StatusCard>
-
-        <StatusCard
-          title="香港收數防護"
-          icon={Phone}
-          status={call?.red_dot ? "警示" : "正常"}
-          statusColor={call?.red_dot ? "text-amber-400" : "text-emerald-400"}
-        >
-          <p>威脅庫：{call?.threat_db_version || "—"}</p>
-          <p>熱線：{call?.hk_hotline || "18222"}</p>
-        </StatusCard>
       </div>
 
       <div className="flex flex-wrap gap-3 py-3">
@@ -203,49 +183,15 @@ export default function SecurityCenter({
         </div>
       </div>
 
-      <Card className="p-4 border-border/60">
-        <h3 className="font-semibold mb-3 text-sm">最近匿名舉報</h3>
-        {reports.length === 0 ? (
-          <p className="text-xs text-muted-foreground">尚無舉報記錄</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-muted-foreground border-b border-border/50">
-                  <th className="text-left py-2 pr-2">時間</th>
-                  <th className="text-left py-2 pr-2">類別</th>
-                  <th className="text-left py-2 pr-2">Hash</th>
-                  <th className="text-right py-2">分數</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((r, i) => (
-                  <tr key={`${r.number_hash}-${i}`} className="border-b border-border/30">
-                    <td className="py-2 pr-2">{formatTs(r.ts)}</td>
-                    <td className="py-2 pr-2">{r.category}</td>
-                    <td className="py-2 pr-2 font-mono">{r.number_hash.slice(0, 8)}…</td>
-                    <td className="py-2 text-right">{r.score}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
       <Tabs defaultValue="crimeguard">
         <TabsList className="rounded-xl">
           <TabsTrigger value="monsterlock">MonsterLock</TabsTrigger>
           <TabsTrigger value="crimeguard">CrimeGuard</TabsTrigger>
-          <TabsTrigger value="callguard">CallGuard</TabsTrigger>
         </TabsList>
-        {(["monsterlock", "crimeguard", "callguard"] as const).map((key) => {
-          const events =
-            key === "monsterlock"
-              ? ml?.events
-              : key === "crimeguard"
-                ? cg?.events
-                : call?.events;
+        {(["monsterlock", "crimeguard"] as const).map((key) => {
+          const events = key === "monsterlock" ? ml?.events : cg?.events;
+          const formatTs = (ts: number) =>
+            ts ? new Date(ts * 1000).toLocaleString("zh-HK") : "—";
           return (
             <TabsContent key={key} value={key}>
               <ul className="text-xs space-y-1 max-h-48 overflow-y-auto">
@@ -262,8 +208,6 @@ export default function SecurityCenter({
           );
         })}
       </Tabs>
-
-      <CallGuardDownload manifest={manifest} />
     </div>
   );
 }

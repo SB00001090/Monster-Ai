@@ -98,41 +98,31 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function deriveAggregateAlert(cg: CrimeGuardStatus, ml: MonsterLockStatus, call: CallGuardStatus) {
+function deriveAggregateAlert(cg: CrimeGuardStatus, ml: MonsterLockStatus) {
   if (cg.network_locked || cg.red_dot) return "locked";
-  if (cg.device_contact_detected || cg.vpn_detected || call.red_dot) return "warn";
-  if (ml.green_dot && cg.green_dot && call.green_dot) return "ok";
+  if (cg.device_contact_detected || cg.vpn_detected) return "warn";
+  if (ml.green_dot && cg.green_dot) return "ok";
   return "off";
 }
 
 export function useSecurityStatus() {
   const [snapshot, setSnapshot] = useState<SecuritySnapshot | null>(null);
-  const [manifest, setManifest] = useState<AppManifest | null>(null);
-  const [reports, setReports] = useState<AnonymousReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [locking, setLocking] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const [status, manifestData, reportData] = await Promise.all([
-        fetchJson<{
-          monsterlock: MonsterLockStatus;
-          crimeguard: CrimeGuardStatus;
-          callguard: CallGuardStatus;
-        }>("/api/security/status"),
-        fetchJson<AppManifest>("/api/callguard/app-manifest").catch(() => null),
-        fetchJson<{ reports: AnonymousReport[] }>("/api/callguard/reports?limit=10").catch(
-          () => ({ reports: [] })
-        ),
-      ]);
+      const status = await fetchJson<{
+        monsterlock: MonsterLockStatus;
+        crimeguard: CrimeGuardStatus;
+        callguard: CallGuardStatus;
+      }>("/api/security/status");
       setSnapshot({
         monsterlock: status.monsterlock,
         crimeguard: status.crimeguard,
         callguard: status.callguard,
       });
-      if (manifestData) setManifest(manifestData);
-      setReports(reportData.reports);
     } catch {
       // Python backend may be offline during dev
     } finally {
@@ -226,19 +216,13 @@ export function useSecurityStatus() {
   }, []);
 
   const aggregateStatus = snapshot
-    ? deriveAggregateAlert(snapshot.crimeguard, snapshot.monsterlock, snapshot.callguard)
+    ? deriveAggregateAlert(snapshot.crimeguard, snapshot.monsterlock)
     : "off";
 
-  const threatCount = snapshot
-    ? (snapshot.callguard.rejects_today || 0) +
-      (snapshot.callguard.reports_today || 0) +
-      (snapshot.crimeguard.locks_triggered || 0)
-    : 0;
+  const threatCount = snapshot ? snapshot.crimeguard.locks_triggered || 0 : 0;
 
   return {
     snapshot,
-    manifest,
-    reports,
     loading,
     locking,
     aggregateStatus,
