@@ -9,7 +9,7 @@ Guardian Ai remains **local-first**. Supabase is optional cloud mirror for profi
 ## 1. Create project (Dashboard)
 
 1. Open your [Supabase organization](https://supabase.com/dashboard/org/htczqqftnoubcyfrehmq).
-2. **New project** → name e.g. `guardian-ai` → pick region closest to users (e.g. `ap-southeast-1`).
+2. **New project** → name e.g. `guardian-ai` → region **`ap-southeast-2`** (Sydney).
 3. Save the database password securely.
 
 ## 2. Run schema
