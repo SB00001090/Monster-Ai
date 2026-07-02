@@ -81,6 +81,12 @@ export default function OAuthProviderButtons({ size = "lg", layout = "stack" }: 
         icon={<Github className="w-4 h-4" />}
         size={size}
       />
+      <ProviderButton
+        provider="discord"
+        label="使用 Discord 綁定"
+        icon={<Github className="w-4 h-4" />}
+        size={size}
+      />
     </div>
   );
 }

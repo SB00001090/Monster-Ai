@@ -475,7 +475,7 @@ class GuardianSettings(BaseModel):
     oc_watermark_enabled: bool = True
     grok_supervision_enabled: bool = True
     min_quality_score: float = 0.70
-    oauth_providers: list[str] = Field(default_factory=lambda: ["google", "github"])
+    oauth_providers: list[str] = Field(default_factory=lambda: ["google", "github", "discord"])
     tunnel_url_env: str = "GUARDIAN_TUNNEL_URL"
     tunnel_url_file: str = "./data/guardian-ai/tunnel_url.txt"
     github_releases_page: str = "https://github.com/SB00001090/Guardian-Ai/releases/latest"

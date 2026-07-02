@@ -91,3 +91,50 @@ export const getNetworkLearningDirectives = (limit = 5) =>
 export const getArtTriageStatus = () => monsterApi.guardianArtTriageStatus();
 
 export const postArtTriageRun = () => monsterApi.guardianArtTriageRun();
+
+export const getManuscriptVersions = (ocId: string) =>
+  monsterApi.guardianManuscriptVersions(ocId);
+
+export const restoreManuscriptVersion = (ocId: string, version: number) =>
+  monsterApi.guardianManuscriptRestore(ocId, version);
+
+export const createCharacterShare = (params: {
+  ocId: string;
+  card: Record<string, unknown>;
+  ownerId?: string;
+  mode: "private" | "link" | "public";
+  ttlHours?: number;
+  passphrase: string;
+}) =>
+  monsterApi.guardianShareCreate({
+    oc_id: params.ocId,
+    card: params.card,
+    owner_id: params.ownerId,
+    mode: params.mode,
+    ttl_hours: params.ttlHours,
+    passphrase: params.passphrase,
+  });
+
+export const importCharacterShare = (token: string, passphrase: string) =>
+  monsterApi.guardianShareImport(token, passphrase);
+
+export const registerGuardianAccount = (username: string, displayName?: string) =>
+  monsterApi.guardianAccountRegister(username, displayName);
+
+export const linkGuardianAccount = (params: {
+  accountId: string;
+  provider: "google" | "github" | "discord";
+  providerSub: string;
+  displayName?: string;
+  email?: string;
+}) =>
+  monsterApi.guardianAccountLink({
+    account_id: params.accountId,
+    provider: params.provider,
+    provider_sub: params.providerSub,
+    display_name: params.displayName,
+    email: params.email,
+  });
+
+export const getGuardianAccountStatus = (accountId: string) =>
+  monsterApi.guardianAccountStatus(accountId);

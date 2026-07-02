@@ -33,6 +33,11 @@ export function registerOAuthRoutes(app: Express) {
         loginMethod = "github";
         name = "Dev GitHub User";
         email = "dev-github@monster-ai.local";
+      } else if (provider === "discord") {
+        openId = "dev_discord_user";
+        loginMethod = "discord";
+        name = "Dev Discord User";
+        email = "dev-discord@monster-ai.local";
       }
 
       const devUser: User = {

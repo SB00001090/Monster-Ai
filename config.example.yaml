@@ -326,6 +326,7 @@ guardian:
   oauth_providers:
     - google
     - github
+    - discord
   apk_usb_install_enabled: true
   training_encryption_enabled: true
   bind_hardware_key: true

@@ -3,7 +3,7 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 /** Default Monster AI brand mark (served from client/public). */
 export const APP_LOGO_SRC = import.meta.env.VITE_APP_LOGO || "/monster-logo.png";
 
-export type OAuthProvider = "google" | "github";
+export type OAuthProvider = "google" | "github" | "discord";
 
 export const isOAuthConfigured = () =>
   Boolean(import.meta.env.VITE_OAUTH_PORTAL_URL?.trim());

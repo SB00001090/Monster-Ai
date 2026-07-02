@@ -227,11 +227,64 @@ export const monsterApi = {
     stack?: string;
     context?: string;
     source?: string;
+    account_id?: string;
+    discord_notify?: boolean;
   }) =>
     request<Record<string, unknown>>("/api/guardian/errors/report", {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  guardianManuscriptVersions: (ocId: string) =>
+    request<Record<string, unknown>>(`/api/guardian/manuscript/${encodeURIComponent(ocId)}/versions`),
+
+  guardianManuscriptRestore: (ocId: string, version: number) =>
+    request<Record<string, unknown>>(`/api/guardian/manuscript/${encodeURIComponent(ocId)}/restore`, {
+      method: "POST",
+      body: JSON.stringify({ version }),
+    }),
+
+  guardianShareCreate: (body: {
+    oc_id: string;
+    card: Record<string, unknown>;
+    owner_id?: string;
+    mode: "private" | "link" | "public";
+    ttl_hours?: number;
+    passphrase: string;
+  }) =>
+    request<Record<string, unknown>>("/api/guardian/share/create", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  guardianShareImport: (token: string, passphrase: string) =>
+    request<Record<string, unknown>>("/api/guardian/share/import", {
+      method: "POST",
+      body: JSON.stringify({ token, passphrase }),
+    }),
+
+  guardianAccountRegister: (username: string, displayName?: string) =>
+    request<Record<string, unknown>>("/api/guardian/account/register", {
+      method: "POST",
+      body: JSON.stringify({ username, display_name: displayName }),
+    }),
+
+  guardianAccountLink: (body: {
+    account_id: string;
+    provider: "google" | "github" | "discord";
+    provider_sub: string;
+    display_name?: string;
+    email?: string;
+  }) =>
+    request<Record<string, unknown>>("/api/guardian/account/link", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  guardianAccountStatus: (accountId: string) =>
+    request<Record<string, unknown>>(
+      `/api/guardian/account/status?account_id=${encodeURIComponent(accountId)}`,
+    ),
 
   guardianNetworkLearningStatus: () =>
     request<Record<string, unknown>>("/api/guardian/network-learning/status"),

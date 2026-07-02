@@ -32,6 +32,8 @@ class ErrorReportRequest(BaseModel):
     stack: str | None = None
     context: str | None = None
     source: str = "api"
+    account_id: str | None = None
+    discord_notify: bool = False
 
 
 class OCProtectRequest(BaseModel):
@@ -74,6 +76,53 @@ class NetworkLearningTriggerRequest(BaseModel):
 
 class ToddlerFeedbackRequest(BaseModel):
     reason: str = "user_praise"
+
+
+class ManuscriptRestoreRequest(BaseModel):
+    version: int = Field(ge=1)
+
+
+class DiaryAppendRequest(BaseModel):
+    session_id: str
+    messages: list[dict[str, Any]]
+    vault_key: str = Field(min_length=8)
+    mood: str | None = None
+
+
+class DiaryReadRequest(BaseModel):
+    date: str
+    vault_key: str = Field(min_length=8)
+
+
+class ShareCreateRequest(BaseModel):
+    oc_id: str = Field(min_length=1)
+    card: dict[str, Any]
+    owner_id: str = "local"
+    mode: str = Field(pattern=r"^(private|link|public)$")
+    ttl_hours: int = Field(default=24, ge=1, le=168)
+    passphrase: str = Field(min_length=8)
+
+
+class ShareImportRequest(BaseModel):
+    token: str = Field(min_length=16)
+    passphrase: str = Field(min_length=8)
+
+
+class AccountRegisterRequest(BaseModel):
+    username: str = Field(min_length=3)
+    display_name: str | None = None
+
+
+class AccountLinkRequest(BaseModel):
+    account_id: str = Field(min_length=1)
+    provider: str = Field(pattern=r"^(google|github|discord)$")
+    provider_sub: str = Field(min_length=1)
+    display_name: str | None = None
+    email: str | None = None
+
+
+class DiscordWebhookRequest(BaseModel):
+    webhook_url: str = Field(min_length=20)
 
 
 class TrainingTextAssetRequest(BaseModel):
@@ -154,6 +203,8 @@ async def report_error(body: ErrorReportRequest, request: Request) -> dict:
         stack=body.stack,
         context=body.context,
         source=body.source,
+        account_id=body.account_id,
+        discord_notify=body.discord_notify,
     )
 
 
@@ -347,3 +398,115 @@ async def toddler_progress(request: Request) -> dict:
 async def toddler_feedback(body: ToddlerFeedbackRequest, request: Request) -> dict:
     svc = _guardian(request)
     return svc.toddler_positive_feedback(reason=body.reason)
+
+
+@router.get("/manuscript/{oc_id}/versions")
+async def manuscript_versions(oc_id: str, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.manuscript_list(oc_id)
+
+
+@router.post("/manuscript/{oc_id}/restore")
+async def manuscript_restore(oc_id: str, body: ManuscriptRestoreRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.manuscript_restore(oc_id, body.version)
+
+
+@router.get("/manuscript/{oc_id}/diff")
+async def manuscript_diff(
+    oc_id: str,
+    request: Request,
+    v1: int,
+    v2: int,
+) -> dict:
+    svc = _guardian(request)
+    return svc.manuscript_diff(oc_id, v1, v2)
+
+
+@router.post("/diary/{character_id}/append")
+async def diary_append(character_id: str, body: DiaryAppendRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.diary_append(
+        character_id,
+        session_id=body.session_id,
+        messages=body.messages,
+        vault_key=body.vault_key,
+        mood=body.mood,
+    )
+
+
+@router.post("/diary/{character_id}/read")
+async def diary_read(character_id: str, body: DiaryReadRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.diary_get(character_id, body.date, vault_key=body.vault_key)
+
+
+@router.post("/diary/{character_id}/summary")
+async def diary_summary(character_id: str, body: DiaryReadRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.diary_summary(character_id, vault_key=body.vault_key, date=body.date)
+
+
+@router.get("/diary/{character_id}/dates")
+async def diary_dates(character_id: str, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.diary_dates(character_id)
+
+
+@router.post("/share/create")
+async def share_create(body: ShareCreateRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.share_create(
+        oc_id=body.oc_id,
+        card=body.card,
+        owner_id=body.owner_id,
+        mode=body.mode,
+        ttl_hours=body.ttl_hours,
+        passphrase=body.passphrase,
+    )
+
+
+@router.post("/share/import")
+async def share_import(body: ShareImportRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.share_import(token=body.token, passphrase=body.passphrase)
+
+
+@router.get("/share/list")
+async def share_list(request: Request, owner_id: str) -> dict:
+    svc = _guardian(request)
+    return svc.share_list(owner_id)
+
+
+@router.post("/account/register")
+async def account_register(body: AccountRegisterRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.account_register(username=body.username, display_name=body.display_name)
+
+
+@router.post("/account/link")
+async def account_link(body: AccountLinkRequest, request: Request) -> dict:
+    svc = _guardian(request)
+    return svc.account_link_oauth(
+        account_id=body.account_id,
+        provider=body.provider,
+        provider_sub=body.provider_sub,
+        display_name=body.display_name,
+        email=body.email,
+    )
+
+
+@router.post("/account/discord-webhook")
+async def account_discord_webhook(
+    request: Request,
+    account_id: str,
+    body: DiscordWebhookRequest,
+) -> dict:
+    svc = _guardian(request)
+    return svc.account_bind_discord_webhook(account_id, webhook_url=body.webhook_url)
+
+
+@router.get("/account/status")
+async def account_status(request: Request, account_id: str) -> dict:
+    svc = _guardian(request)
+    return svc.account_status(account_id)
