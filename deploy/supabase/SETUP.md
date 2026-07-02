@@ -55,7 +55,11 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 Add to `.env` and Cloudflare Pages env.
 
-## 6. Verify
+## 6. MCP + Agent Skills (optional)
+
+See **[MCP.md](MCP.md)** — Grok `/mcps` OAuth, Cursor `.mcp.json`, Copilot `mcp-config.json`, and `npx skills add supabase/agent-skills`.
+
+## 7. Verify
 
 1. Restart `run.bat` or `pnpm dev` + `python main.py`.
 2. Open `/integrations` → **Supabase** row should show green when URL + anon key are set.

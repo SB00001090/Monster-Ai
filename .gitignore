@@ -34,6 +34,9 @@ mcps/
 *.jks
 keystore.properties
 
+# Agent skills installer output (reinstall with: npx skills add supabase/agent-skills -y)
+.agents/
+
 # Cursor / IDE session artifacts (local only)
 Discord版 Monster Ai/
 terminals/
