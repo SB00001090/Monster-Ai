@@ -13,9 +13,11 @@ import {
   setGenProvider,
   type GenProvider,
 } from "@/lib/integrations";
+import { isSupabaseConfigured, pingSupabase } from "@/lib/supabaseClient";
 import {
   Activity,
   Cloud,
+  Database,
   ExternalLink,
   GitBranch,
   Layers,
@@ -46,6 +48,7 @@ export default function IntegrationsPage() {
   const [difyUrl, setDifyUrl] = useState("");
   const [difyKey, setDifyKey] = useState("");
   const [busy, setBusy] = useState(false);
+  const [supabaseReachable, setSupabaseReachable] = useState<boolean | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -62,6 +65,14 @@ export default function IntegrationsPage() {
     setDifyKey(cfg.apiKey);
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setSupabaseReachable(null);
+      return;
+    }
+    void pingSupabase().then(setSupabaseReachable);
+  }, [status?.supabase_configured]);
 
   const saveDify = () => {
     setDifyConfig(difyUrl, difyKey);
@@ -87,6 +98,24 @@ export default function IntegrationsPage() {
     }
   };
 
+  const testSupabase = async () => {
+    if (!isSupabaseConfigured()) {
+      toast.error("請在 .env 設定 VITE_SUPABASE_URL 與 VITE_SUPABASE_ANON_KEY");
+      return;
+    }
+    setBusy(true);
+    try {
+      const ok = await pingSupabase();
+      setSupabaseReachable(ok);
+      toast.success(ok ? "Supabase 已連線" : "Supabase 無法連線 — 請確認 schema 與 API 金鑰");
+      void refresh();
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const dify = (status?.dify as Record<string, unknown>) || {};
   const mini = (status?.mini_success as Record<string, unknown>) || {};
   const curriculum = (status?.curriculum as Record<string, unknown>) || {};
@@ -96,7 +125,7 @@ export default function IntegrationsPage() {
   return (
     <NeonShell
       title="平台整合"
-      subtitle="Dify · Hugging Face · Make · Sentry · Jam · Cloudflare — 一頁總覽"
+      subtitle="Dify · Supabase · Hugging Face · Make · Sentry · Jam · Cloudflare — 一頁總覽"
       badge={online ? "後端連線中" : "後端離線"}
     >
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -179,6 +208,47 @@ export default function IntegrationsPage() {
           <Button size="sm" variant="outline" asChild>
             <a href="/deploy">開啟部署設定</a>
           </Button>
+        </NeonPanel>
+
+        <NeonPanel className="space-y-3">
+          <h2 className="font-semibold text-[var(--neon-cyan)] flex items-center gap-2">
+            <Database className="w-4 h-4" /> Supabase
+            <StatusDot
+              ok={
+                Boolean(status?.supabase_configured) && isSupabaseConfigured()
+                  ? supabaseReachable ?? undefined
+                  : false
+              }
+            />
+          </h2>
+          <p className="text-xs text-[var(--neon-muted)]">
+            選用雲端鏡像：profiles、sync manifest、error incident 備份（本機優先）
+          </p>
+          <ul className="text-sm space-y-1 text-[var(--neon-muted)]">
+            <li className="flex items-center gap-2">
+              <StatusDot ok={Boolean(status?.supabase_configured)} /> 後端 env 已設定
+            </li>
+            <li className="flex items-center gap-2">
+              <StatusDot ok={isSupabaseConfigured()} /> 前端 VITE 變數
+            </li>
+          </ul>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="neon-btn-primary" disabled={busy} onClick={testSupabase}>
+              測試連線
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              <a
+                href="https://supabase.com/dashboard/org/htczqqftnoubcyfrehmq"
+                target="_blank"
+                rel="noreferrer"
+              >
+                開啟組織 <ExternalLink className="w-3 h-3 ml-1" />
+              </a>
+            </Button>
+          </div>
+          <p className="text-[10px] text-[var(--neon-muted)]">
+            設定見 deploy/supabase/SETUP.md · SQL 見 guardian_schema.sql
+          </p>
         </NeonPanel>
 
         <NeonPanel className="space-y-3">

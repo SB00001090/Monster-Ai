@@ -20,6 +20,17 @@ def _make_secret(request: Request) -> str:
     return os.environ.get(env, "")
 
 
+def _supabase_configured() -> bool:
+    url = (os.environ.get("VITE_SUPABASE_URL") or os.environ.get("SUPABASE_URL") or "").strip()
+    key = (
+        os.environ.get("VITE_SUPABASE_ANON_KEY")
+        or os.environ.get("SUPABASE_ANON_KEY")
+        or os.environ.get("VITE_SUPABASE_PUBLISHABLE_KEY")
+        or ""
+    ).strip()
+    return bool(url and key)
+
+
 @router.get("/status")
 async def integrations_status(request: Request) -> dict[str, Any]:
     settings = request.app.state.settings
@@ -44,6 +55,7 @@ async def integrations_status(request: Request) -> dict[str, Any]:
         "dify": dify_st,
         "sentry_configured": bool(os.environ.get(settings.integrations.sentry_dsn_env)),
         "make_secret_configured": bool(_make_secret(request)),
+        "supabase_configured": _supabase_configured(),
         "mini_success": success,
         "curriculum": curriculum,
         "quality_threshold": settings.dify.min_quality_score,

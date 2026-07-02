@@ -24,6 +24,8 @@ def test_integrations_status(client: TestClient) -> None:
     assert "cloudflare_pages" in data
     assert "quality_threshold" in data
     assert data["quality_threshold"] == 0.7
+    assert "supabase_configured" in data
+    assert data["supabase_configured"] is False
 
 
 def test_make_deploy_hook_no_secret(client: TestClient) -> None:
