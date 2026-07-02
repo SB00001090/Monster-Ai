@@ -103,8 +103,8 @@ export default function GuardianSyncPage() {
       setTunnelUrl((conn.tunnel_url as string) ?? null);
       const text = disclaimer.text ?? "";
       setDisclaimerLine(
-        text.includes("可能性無法退款")
-          ? "免責聲明已載入 · 端到端加密 · 可能性無法退款"
+        text.includes("不接受退款") || text.includes("No refunds")
+          ? "免責聲明已載入 · 端到端加密 · 不接受退款"
           : "免責聲明已載入 · 端到端加密",
       );
     } catch {

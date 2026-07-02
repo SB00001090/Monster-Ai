@@ -25,6 +25,7 @@ from monster_ai.modules.image.model_presets import (
 from monster_ai.modules.image.lora_manager import list_loras, resolve_lora
 from monster_ai.modules.image.quality import ImageQualityScorer
 from monster_ai.modules.image.quality_store import QualityStore
+from monster_ai.modules.generation.router import GenerationRouter
 from monster_ai.modules.image.workflow_builder import build_txt2img_workflow, pick_workflow_template
 from monster_ai.modules.prompt.anti_collapse import build_negative, suggest_cfg
 from monster_ai.modules.prompt.enhancer import PromptEnhancer
@@ -257,8 +258,11 @@ class ImageService:
         width: int | None = None,
         height: int | None = None,
         style: str | None = None,
+        backend: str | None = None,
+        vae: str | None = None,
         checkpoint: str | None = None,
         enhance_prompt: bool = True,
+        generation_router: GenerationRouter | None = None,
         quality_filter: bool | None = None,
         max_quality_retries: int | None = None,
         record_history: bool = True,
@@ -282,7 +286,30 @@ class ImageService:
 
         style_preset = get_preset(style)
         warning: str | None = None
-        if checkpoint:
+        route_meta: dict[str, Any] | None = None
+        routed_w: int | None = None
+        routed_h: int | None = None
+
+        if backend or vae:
+            gen_router = generation_router or GenerationRouter()
+            route_meta = gen_router.resolve(
+                backend_id=backend,
+                vae=vae,
+                width=width,
+                height=height,
+                checkpoint=checkpoint,
+                available_checkpoints=available_ckpts,
+            )
+            resolved_ckpt = route_meta.get("checkpoint")
+            if resolved_ckpt:
+                resolved_ckpt, ckpt_warn = await self.client.resolve_checkpoint_name(resolved_ckpt)
+                warning = route_meta.get("warning") or ckpt_warn
+            else:
+                resolved_ckpt, ckpt_warn = await self.client.resolve_checkpoint_name(img_cfg.checkpoint)
+                warning = route_meta.get("warning") or ckpt_warn
+            routed_w = route_meta.get("width")
+            routed_h = route_meta.get("height")
+        elif checkpoint:
             resolved_ckpt, ckpt_warn = await self.client.resolve_checkpoint_name(checkpoint)
             warning = ckpt_warn
         elif style and style != "auto":
@@ -308,8 +335,8 @@ class ImageService:
         )
         neg = negative or self.prompt_enhancer.default_negative()
         neg = apply_style_to_negative(neg, style_preset)
-        w = width or style_preset.width or img_cfg.width
-        h = height or style_preset.height or img_cfg.height
+        w = routed_w or width or style_preset.width or img_cfg.width
+        h = routed_h or height or style_preset.height or img_cfg.height
         steps = steps if steps is not None else img_cfg.steps
         cfg = cfg if cfg is not None else suggest_cfg(checkpoint, img_cfg.cfg)
         active_ckpt = checkpoint
@@ -523,6 +550,15 @@ class ImageService:
             result["lora"] = active_lora
         if warning:
             result["warning"] = warning
+        if route_meta:
+            result["routing"] = {
+                "backend": route_meta.get("backend"),
+                "vae": route_meta.get("vae"),
+                "width": route_meta.get("width"),
+                "height": route_meta.get("height"),
+                "upscale_recommended": route_meta.get("upscale_recommended"),
+                "resolution_policy": route_meta.get("resolution_policy"),
+            }
         if use_quality and last_report:
             result["quality"] = {
                 **last_report.to_dict(),

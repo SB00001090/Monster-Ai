@@ -48,6 +48,7 @@ from monster_ai.core.hardware_probe import detect_hardware
 from monster_ai.core.self_heal_orchestrator import SelfHealOrchestrator
 from monster_ai.core.self_repair import SelfRepairEngine
 from monster_ai.core.vram_guard import VramGuard
+from monster_ai.modules.generation.router import GenerationRouter
 from monster_ai.core.watchdog import Watchdog
 from monster_ai.modules.chat.service import ChatService
 from monster_ai.modules.discord.bot import DiscordService
@@ -420,6 +421,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.chat = chat
     app.state.roleplay = roleplay
     app.state.image = image
+    app.state.generation_router = GenerationRouter(default_backend="sd15")
     app.state.video = video
     app.state.tts = tts
     app.state.modules = modules

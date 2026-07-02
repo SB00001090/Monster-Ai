@@ -10,81 +10,41 @@ TODDLER_NOTICE_ZH = (
 
 TODDLER_NOTICE_EN = (
     "Its learning system is designed similarly to a human toddler that learns and grows gradually. "
-    "Therefore, it may initially produce errors, inaccuracies, or imperfect results."
+    "Therefore, it may initially produce errors, inaccuracies, or imperfect results. "
+    "Users should understand this and exercise their own judgment."
 )
 
 DISCLAIMER_ZH = f"""【Guardian Ai 免責聲明】
 
 {DEVELOPER}
 
-【幼兒式學習提醒】
-{TODDLER_NOTICE_ZH}
+本應用程式為本地運作之創意與安全工具。學習系統設計為類似人類幼兒般逐步成長，因此初期可能會出現錯誤或不準確之情況，用戶應理解並自行判斷生成內容之適切性。
 
-1. **服務性質**
-   - 本軟體為本地優先 AI 平台，生成內容僅供私人創作與娛樂。
-   - NSFW / R18+ 描述已作模糊處理；實際輸出由您本地模型決定，平台不代為審查。
+你的購買同時支持開發者持續為 Guardian Ai 提供學習與自我提升的環境。我們會將資源投入模型優化與威脅更新，而非收取高昂費用卻提供低質素服務。
 
-2. **付款與退款**
-   - 7 日免費試用後可選一次性付費解鎖（區域定價）。
-   - **付款完成後，因本地環境、硬體、模型或網絡差異導致之結果，可能性無法退款。**
-   - 請於試用期充分評估後再購買。
+本應用程式可能產生涉及成熟、敏感或虛構主題之內容。用戶須自行確保使用行為符合當地法律及道德規範。
 
-3. **隱私與雲端同步**
-   - OC 文案與對話預設僅存本機（AES-256-GCM 加密）。
-   - **訓練檔案（好圖／爛圖／模板／prompt／LoRA 資料）全面加密儲存**，禁止明文存放。
-   - 金鑰由用戶 passphrase 或裝置硬體指紋（GuardianLock / Android Keystore）綁定。
-   - 雲端同步為**可選**；訓練檔案須先本機加密後才上傳（端到端）。
-   - Google / GitHub 登入僅用於身份驗證，不解密您的內容。
+本應用程式為數碼產品，一經啟用或付費解鎖，即視為完成交易，無論任何原因均不接受退款。
 
-4. **OC 反抄襲**
-   - 角色指紋、浮水印（GDA-）與網絡學習保護預設啟用。
-   - 未經授權不得複製他人 OC 指紋或訓練資料。
+本應用程式之完整原始實作僅由開發者持有與維護。
 
-5. **安全保護**
-   - 聊天區：加密儲存 + Ephemeral Chat + 反監聽提示。
-   - 防毒、反暗網、反監視模組依 CrimeGuard 規則運作。
-   - 生成品質低於 70% 視為失敗並自動重試。
-
-6. **Likeness 與多模態**
-   - 圖片／影片／音訊 likeness 僅限您擁有權利或已授權之參考。
-   - 您對所有生成內容負全部法律責任。
-
-7. **自主網絡學習（預設關閉）**
-   - 僅在您明確同意後，系統才會在排程視窗內連接公開網絡學習技術新聞與繪畫品質知識。
-   - Grok 監督層須審批每次學習主題；OC 指紋、聊天 vault、訓練明文永不外傳。
-   - 出站僅含匿名 topic ID 與聚合統計；藝術分類（好圖／爛圖／參考級）僅更新加密 vault metadata。
-   - 可隨時撤銷同意以停止所有自主連線。
-
-8. **原始碼與智慧財產**
-   - **完整原始實作僅由開發者持有**；公開版本不含全部商業邏輯與訓練管線細節。
-
-使用本軟體即表示您已閱讀、理解並同意上述條款。"""
+使用本應用程式即表示您已閱讀、理解並同意以上所有條款。"""
 
 DISCLAIMER_EN = f"""Guardian Ai — Disclaimer
 
 {DEVELOPER}
 
-Toddler-style learning notice:
-{TODDLER_NOTICE_EN}
-Users should understand and judge the appropriateness of generated content themselves.
+This application is a locally-operated creative and security tool. Its learning system is designed similarly to a human toddler that learns and grows gradually. Therefore, it may initially produce errors, inaccuracies, or imperfect results. Users should understand this and exercise their own judgment.
 
-1. Local-first AI for private creative use. NSFW descriptions are blurred in UI; output is your responsibility.
+Your purchase also supports the developer in continuously providing a learning and self-improvement environment for Guardian Ai. We invest resources in model optimization and threat updates, rather than charging high fees for low-quality service.
 
-2. 7-day trial, then one-time regional pricing. **No refunds** for results affected by your hardware, models, or network.
+This application may produce content involving mature, sensitive, or fictional themes. Users are solely responsible for ensuring their usage complies with applicable laws and ethical standards.
 
-3. Training assets (good/bad images, templates, LoRA data) are AES-256-GCM encrypted at rest — no plaintext on disk. Keys bind to hardware or user passphrase.
+This application is a digital product. Once activated or unlocked through payment, the transaction is considered final. No refunds will be accepted under any circumstances.
 
-4. OC and chats stay local unless you opt into E2E encrypted cloud sync (Google/GitHub auth only). Training vault sync exports ciphertext only.
+The complete original implementation is held and maintained solely by the developer.
 
-5. Chat vault encryption, ephemeral mode, anti-surveillance hooks. Quality below 70% counts as failure.
-
-6. Likeness/multimodal features require authorized references only.
-
-7. Autonomous network learning is OFF by default. Only after explicit consent will scheduled public tech/art-quality learning run, with Grok approval per run. OC fingerprints, chat vault, and training plaintext never leave your device. Outbound data is anonymous topic IDs and aggregates only; art triage updates encrypted vault metadata. Revoke consent anytime.
-
-8. **Full original implementation is held by the developer only**; the public release does not include all commercial logic or training pipeline details.
-
-By using this software you accept these terms."""
+By using this application, you acknowledge that you have read, understood, and agreed to all the terms above."""
 
 
 def get_disclaimer(locale: str = "zh-TW") -> dict[str, str]:
@@ -93,13 +53,13 @@ def get_disclaimer(locale: str = "zh-TW") -> dict[str, str]:
             "locale": "en",
             "text": DISCLAIMER_EN,
             "developer": DEVELOPER,
-            "version": "guardian_ai_v1",
+            "version": "guardian_ai_v2",
             "toddler_notice": TODDLER_NOTICE_EN,
         }
     return {
         "locale": locale,
         "text": DISCLAIMER_ZH,
         "developer": DEVELOPER,
-        "version": "guardian_ai_v1",
+        "version": "guardian_ai_v2",
         "toddler_notice": TODDLER_NOTICE_ZH,
     }

@@ -132,6 +132,8 @@ modules:
     enabled: true
     comfyui_url: "http://127.0.0.1:8188"
     checkpoint: "auto"
+    # Multi-backend routing: GET /api/generate/backends · POST /api/generate/image { backend, vae }
+    # backends: sd15 | sdxl | flux | pony — resolution policy FHD (1920×1080) to 8K (7680×4320)
     lora_strength: 0.8
     output_dir: "./data/outputs/images"
     quality:

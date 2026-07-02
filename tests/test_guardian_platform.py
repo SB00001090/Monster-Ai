@@ -39,16 +39,16 @@ def client(tmp_path, monkeypatch):
 def test_disclaimer_hardcoded():
     zh = get_disclaimer("zh-TW")
     assert DEVELOPER in zh["text"]
-    assert "可能性無法退款" in zh["text"]
-    assert "自主網絡學習" in zh["text"]
-    assert "Grok" in zh["text"]
+    assert "無論任何原因均不接受退款" in zh["text"]
+    assert "支持開發者" in zh["text"]
     assert "幼兒" in zh["text"]
-    assert zh["version"] == "guardian_ai_v1"
-    assert "toddler" in zh.get("toddler_notice", "").lower() or "幼兒" in zh.get("toddler_notice", "")
+    assert zh["version"] == "guardian_ai_v2"
+    assert "幼兒" in zh.get("toddler_notice", "")
 
     en = get_disclaimer("en")
     assert "toddler" in en["text"].lower()
-    assert en["version"] == "guardian_ai_v1"
+    assert "No refunds will be accepted" in en["text"]
+    assert en["version"] == "guardian_ai_v2"
 
 
 def test_e2e_encrypt_roundtrip():

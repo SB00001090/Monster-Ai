@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+from monster_ai.modules.generation.router import GenerationRouter
 from monster_ai.modules.image.model_presets import list_presets_for_api
 from monster_ai.modules.prompt.anti_collapse import DEFAULT_NEGATIVE
 from monster_ai.protection.guards import is_safe_path
@@ -54,6 +55,20 @@ async def list_model_presets(request: Request) -> dict:
     return {"presets": list_presets_for_api(ckpts, config_default=cfg_default)}
 
 
+@router.get("/backends")
+async def list_generation_backends(request: Request) -> dict:
+    image = request.app.state.image
+    ckpts = await image.list_checkpoints()
+    gen_router: GenerationRouter = request.app.state.generation_router
+    return {"backends": gen_router.list_backends(ckpts)}
+
+
+@router.get("/resolutions")
+async def list_generation_resolutions(request: Request) -> dict:
+    gen_router: GenerationRouter = request.app.state.generation_router
+    return {"resolutions": gen_router.list_resolutions()}
+
+
 class ImageRequest(BaseModel):
     prompt: str
     negative: str | None = None
@@ -62,6 +77,8 @@ class ImageRequest(BaseModel):
     width: int | None = None
     height: int | None = None
     style: str | None = None
+    backend: str | None = Field(default=None, description="sd15 | sdxl | flux | pony")
+    vae: str | None = Field(default=None, description="VAE filename or auto")
     checkpoint: str | None = None
     enhance_prompt: bool = True
     quality_filter: bool | None = None
@@ -119,6 +136,7 @@ async def generate_image(body: ImageRequest, request: Request) -> dict:
     _check_rate(request)
     _check_crimeguard(request, body.prompt)
     image = request.app.state.image
+    gen_router: GenerationRouter = request.app.state.generation_router
     try:
         return await image.generate(
             body.prompt,
@@ -128,10 +146,13 @@ async def generate_image(body: ImageRequest, request: Request) -> dict:
             width=body.width,
             height=body.height,
             style=body.style,
+            backend=body.backend,
+            vae=body.vae,
             checkpoint=body.checkpoint,
             enhance_prompt=body.enhance_prompt,
             quality_filter=body.quality_filter,
             max_quality_retries=body.max_quality_retries,
+            generation_router=gen_router,
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, str(exc)) from exc
